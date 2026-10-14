@@ -1,0 +1,19 @@
+# Node
+node_modules/
+.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.env
+.vercel
+.vscode/
+*.log
+
+# Prisma
+prisma/*.sqlite
+prisma/*.sqlite-jam
+
+# Misc
+.DS_Store
+Thumbs.db

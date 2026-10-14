@@ -1,0 +1,190 @@
+// PRICELIST data model.
+//
+// Development uses SQLite (string-based status fields).
+// For production PostgreSQL:
+//   1. change `provider` below to "postgresql"
+//   2. set DATABASE_URL to your Postgres connection string
+//   3. run: npx prisma migrate dev
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String   @unique
+  password      String
+  phone         String?
+  role          String // USER | ADMIN
+  suspended     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  business      Business?
+  subscription  Subscription?
+  resets        PasswordResetToken[]
+
+  @@index([email])
+}
+
+model Business {
+  id             String            @id @default(cuid())
+  userId         String            @unique
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String            @unique
+  description    String?
+  category       String // BusinessCategory
+  logoUrl        String?
+  whatsappNumber String?
+  phone          String?
+  address        String?
+  timezone       String            @default("Africa/Lagos")
+  theme          String            @default("classic")
+  accentColor    String?
+  showBranding   Boolean           @default(true)
+  heroImageUrl   String?
+  instagram      String?
+  tiktok          String?
+  facebook       String?
+  x              String?
+  website        String?
+  suspended      Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  hours          BusinessHours[]
+  categories     Category[]
+  products       Product[]
+  orders         Order[]
+  events         AnalyticsEvent[]
+
+  @@index([slug])
+}
+
+model BusinessHours {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  day        Int // 0 = Monday ... 6 = Sunday
+  isOpen     Boolean  @default(true)
+  opensAt    String   @default("09:00")
+  closesAt   String   @default("18:00")
+
+  @@unique([businessId, day])
+  @@index([businessId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  businessId String
+  business  Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  products  Product[]
+
+  @@index([businessId])
+  @@unique([businessId, name])
+}
+
+model Product {
+  id          String       @id @default(cuid())
+  businessId  String
+  business    Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  name        String
+  slug        String
+  description String?
+  price       Int // minor units (kobo) — never floats
+  salePrice   Int?
+  imageUrl    String?
+  images      String? // JSON array of additional image URLs
+  type        String // PRODUCT | SERVICE
+  sku         String?
+  isAvailable Boolean      @default(true)
+  isFeatured  Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, isFeatured])
+  @@unique([businessId, slug])
+}
+
+model Order {
+  id            String       @id @default(cuid())
+  businessId    String
+  business      Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerName  String?
+  customerPhone String?
+  customerNote  String?
+  subtotal      Int // kobo
+  discount      Int          @default(0) // kobo
+  total         Int // kobo
+  status        String // NEW | CONTACTED | CONFIRMED | COMPLETED | CANCELLED
+  source        String       @default("storefront")
+  sessionId     String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  items         OrderItem[]
+
+  @@index([businessId, createdAt])
+  @@index([businessId, status])
+}
+
+model OrderItem {
+  id                 String  @id @default(cuid())
+  orderId            String
+  order              Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId          String?
+  productNameSnapshot String
+  priceSnapshot      Int // kobo at time of order
+  quantity           Int
+  subtotal           Int // kobo
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Subscription {
+  id                   String            @id @default(cuid())
+  userId               String            @unique
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                 String // FREE | STARTER | PRO
+  status               String // SubscriptionStatus
+  provider             String            @default("manual")
+  providerCustomerId   String?
+  providerSubscriptionId String?
+  startDate            DateTime?
+  renewalDate          DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  businessId String
+  business  Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  eventType String // STORE_VIEW | PRODUCT_VIEW | WHATSAPP_CLICK
+  productId String?
+  sessionId String?
+  metadata  String? // JSON
+  createdAt DateTime @default(now())
+
+  @@index([businessId, eventType, createdAt])
+  @@index([businessId, createdAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
