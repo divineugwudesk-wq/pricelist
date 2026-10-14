@@ -1,6 +1,8 @@
 name = "pricelist"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = ".vercel/output/static"
+
+[site]
+bucket = "./.opennext"
 
 [vars]
 DATABASE_URL = "postgresql://postgres:PLACEHOLDER@db.YOUR-PROJECT-ID.supabase.co:6543/postgres?pgbouncer=true"
