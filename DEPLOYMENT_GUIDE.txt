@@ -1,0 +1,116 @@
+=== COMPLETE DEPLOYMENT GUIDE ===
+
+STEP 1: VERIFY & FIX SUPABASE CONNECTION
+
+Your Supabase project might be sleeping (free tier). Try:
+1. Go to https://supabase.com/dashboard
+2. Click on your project
+3. Wait for it to wake up (may take 10-30 seconds)
+4. Then test connection with:
+   npx prisma generate
+
+If still failing, try these connection string variations in .env:
+
+Option A (Direct connection):
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.YOUR-PROJECT-ID.supabase.co:5432/postgres?sslmode=disable"
+
+Option B (Pooled connection - RECOMMENDED):
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.YOUR-PROJECT-ID.supabase.co:6543/postgres?pgbouncer=true"
+
+Option C (Pooled with SSL):
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.YOUR-PROJECT-ID.supabase.co:6543/postgres?pgbouncer=true&sslmode=require"
+
+NOTE: Replace YOUR_PASSWORD with URL-encoded password
+      Replace YOUR-PROJECT-ID with your Supabase project ID
+
+STEP 2: TEST CONNECTION
+
+After updating .env, run:
+npx prisma generate
+
+If this succeeds, try migrations:
+npx prisma migrate deploy --skip-generate
+
+STEP 3: GITHUB SETUP
+
+If you havent created the repo yet:
+1. Go to https://github.com/new
+2. Repository name: pricelist
+3. Description: PRICELIST SaaS - Multi-tenant storefront platform
+4. Choose Public
+5. Do NOT initialize with README (we already have code)
+6. Click Create repository
+
+Then run:
+git remote set-url origin https://github.com/YOUR_USERNAME/pricelist.git
+git push -u origin main
+
+STEP 4: CLOUDFLARE PAGES SETUP
+
+1. Go to https://dash.cloudflare.com
+2. Click Pages ? Create a project
+3. Connect to GitHub ? Select your pricelist repository
+4. Configure build:
+   - Build command: npm run build
+   - Output directory: .vercel/output/static
+5. Click Save and Deploy
+
+6. After deployment, go to Settings ? Environment variables
+   Add these variables:
+
+   DATABASE_URL = "postgresql://postgres:YOUR_PASSWORD@db.YOUR-PROJECT-ID.supabase.co:6543/postgres?pgbouncer=true"
+   AUTH_SECRET = "YOUR_AUTH_SECRET"
+   APP_URL = "https://YOUR_PAGES_PROJECT.pages.dev"
+   NEXTAUTH_URL = "https://YOUR_PAGES_PROJECT.pages.dev"
+   PAYSTACK_SECRET_KEY = "(your live key from Paystack dashboard)"
+   PAYSTACK_PUBLIC_KEY = "(your live key from Paystack dashboard)"
+
+STEP 5: TEST DEPLOYMENT
+
+Once deployed, visit: https://YOUR_PAGES_PROJECT.pages.dev
+
+Test authentication:
+   Email: demo@pricelist.ng
+   Password: demo1234
+
+Test storefront:
+   Visit: https://YOUR_PAGES_PROJECT.pages.dev/chuks-kicks
+
+Visit dashboard after login:
+   https://YOUR_PAGES_PROJECT.pages.dev/dashboard
+
+=== TROUBLESHOOTING TIPS ===
+
+If database connection fails in Cloudflare Pages:
+1. Check Pages logs for connection errors
+2. Verify DATABASE_URL is set correctly in Pages environment variables
+3. Ensure your Supabase project is not paused (free tier)
+4. Try using the Supabase Connection Pooler (port 6543)
+5. As a last resort for testing, you could temporarily use
+   SQLite by changing provider back to sqlite in schema.prisma
+   and using a file:./prod.db database (NOT for real production!)
+
+=== ALTERNATIVE: TEMPORARY SQLITE FOR TESTING ===
+
+IF you just want to see the app working quickly:
+1. Change provider in prisma/schema.prisma back to sqlite
+2. Update .env DATABASE_URL to: file:./prod.db
+3. Run: npx prisma migrate dev --name init
+4. Run: npx tsx prisma/seed.ts
+5. Then deploy - this will use SQLite (not recommended for real usage)
+
+=== YOU HAVE ALL COMPONENTS READY ===
+
+? Code built and tested locally
+? All authentication flows work
+? Paystack integration configured
+? Onboarding flow complete
+? Dashboard with analytics
+? Storefront with cart and WhatsApp sharing
+? Admin panel
+
+The only remaining piece is the database connection. Once that
+works, your full SaaS platform will be live!
+
+Let me know which step youd like to try first, and Ill guide
+you through it!

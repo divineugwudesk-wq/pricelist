@@ -2,5 +2,10 @@ name = "pricelist"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = ".vercel/output/static"
 
-[env]
-# Production environment variables set in Cloudflare dashboard
+[vars]
+DATABASE_URL = "postgresql://postgres:PLACEHOLDER@db.YOUR-PROJECT-ID.supabase.co:6543/postgres?pgbouncer=true"
+AUTH_SECRET = "PLACEHOLDER_AUTH_SECRET"
+APP_URL = "https://YOUR_PAGES_PROJECT.pages.dev"
+NEXTAUTH_URL = "https://YOUR_PAGES_PROJECT.pages.dev"
+PAYSTACK_SECRET_KEY = "(your live key from Paystack dashboard)"
+PAYSTACK_PUBLIC_KEY = "(your live key from Paystack dashboard)"
