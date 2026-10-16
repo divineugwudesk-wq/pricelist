@@ -13,7 +13,18 @@ pnpm-debug.log*
 # Prisma
 prisma/*.sqlite
 prisma/*.sqlite-jam
+prisma/dev.db
+
+# OpenNext / Cloudflare build output
+.open-next/
 
 # Misc
 .DS_Store
 Thumbs.db
+*.backup
+temp.txt
+bash.exe
+*temprun_next_on_pages.bat
+*tmprun_next_on_pages.bat
+run_next_on_pages.bat
+tsconfig.tsbuildinfo

@@ -6,6 +6,8 @@ import { getActivePlan, checkProductLimit, PLANS } from "@/lib/plans";
 import { slugify, uniqueSlug } from "@/lib/utils";
 import type { Product } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 function serializeProduct(p: Product) {
   return {
     ...p,

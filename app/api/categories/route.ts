@@ -4,6 +4,8 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { categorySchema } from "@/lib/validation";
 import { getActivePlan, checkCategoryLimit, PLANS } from "@/lib/plans";
 
+export const dynamic = "force-dynamic";
+
 /** List business categories. */
 export async function GET() {
   try {

@@ -3,6 +3,8 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { storeImage, StorageError } from "@/lib/storage";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const MAX_BASE64_LENGTH = 7 * 1024 * 1024; // base64 inflates ~33%
 
 const uploadSchema = z.object({

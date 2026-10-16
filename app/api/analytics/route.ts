@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/server-auth";
 import { recordEvent, newSessionId, AnalyticsEventType } from "@/lib/analytics";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const eventSchema = z.object({
   businessId: z.string().min(1),
   eventType: z.enum(["STORE_VIEW", "PRODUCT_VIEW", "WHATSAPP_CLICK"]),

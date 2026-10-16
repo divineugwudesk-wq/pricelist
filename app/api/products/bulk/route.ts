@@ -4,6 +4,8 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { getActivePlan } from "@/lib/plans";
 import { productSchema } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Bulk product operations (owner-scoped):
  *   { action: "delete" | "availability" | "featured", productIds: string[], value?: boolean }

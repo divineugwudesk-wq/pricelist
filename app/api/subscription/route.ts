@@ -3,6 +3,8 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { prisma } from "@/lib/db";
 import { getActivePlan } from "@/lib/plans";
 
+export const dynamic = "force-dynamic";
+
 /** Current user's subscription (for billing + feature gating). */
 export async function GET() {
   try {

@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {

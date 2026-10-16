@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 import { consumePasswordResetToken } from "@/lib/password-reset";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { token?: string; password?: string };

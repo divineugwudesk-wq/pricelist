@@ -6,20 +6,23 @@ import { getActivePlan } from "@/lib/plans";
 import { canUseTheme } from "@/lib/plans";
 import { getTheme, THEME_LIST } from "@/lib/themes";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Store customization: theme, accent color, branding, hero image,
  * description. Theme access is enforced server-side by plan tier.
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
 
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id, userId: user.id },
       select: { id: true, theme: true, userId: true },
     });
     if (!business) {
@@ -105,12 +108,13 @@ export async function PATCH(
 /** Available themes for the business, with access flags (server-verified). */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const business = await prisma.business.findFirst({
-    where: { id: params.id, userId: user.id },
+    where: { id, userId: user.id },
     select: { id: true, userId: true },
   });
   if (!business) {

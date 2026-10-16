@@ -4,6 +4,8 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { businessSchema, businessHoursSchema } from "@/lib/validation";
 import { uniqueSlug } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const user = await getCurrentUser();

@@ -5,6 +5,8 @@ import { productSchema, productUpdateSchema } from "@/lib/validation";
 import { NotFoundError } from "@/lib/server-auth";
 import type { Product } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 function serializeProduct(p: Product) {
   return {
     ...p,
@@ -14,13 +16,14 @@ function serializeProduct(p: Product) {
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
     const product = await prisma.product.findFirst({
-      where: { id: params.id, business: { userId: user.id } },
+      where: { id, business: { userId: user.id } },
       include: { category: true },
     });
     if (!product) throw new NotFoundError("Product not found.");
@@ -42,14 +45,15 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
 
     const existing = await prisma.product.findFirst({
-      where: { id: params.id, business: { userId: user.id } },
+      where: { id, business: { userId: user.id } },
     });
     if (!existing) throw new NotFoundError("Product not found.");
 
@@ -136,14 +140,15 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
 
     const product = await prisma.product.findFirst({
-      where: { id: params.id, business: { userId: user.id } },
+      where: { id, business: { userId: user.id } },
       select: { id: true },
     });
     if (!product) throw new NotFoundError("Product not found.");

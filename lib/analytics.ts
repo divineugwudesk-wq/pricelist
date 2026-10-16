@@ -1,13 +1,12 @@
 // Analytics service. Events are stored in the database and aggregated
 // for the dashboard/admin. No third-party dependency required.
 
-import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 
 export type AnalyticsEventType = "STORE_VIEW" | "PRODUCT_VIEW" | "WHATSAPP_CLICK";
 
 export function newSessionId(): string {
-  return randomUUID();
+  return crypto.randomUUID();
 }
 
 export async function recordEvent(

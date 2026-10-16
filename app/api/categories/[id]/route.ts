@@ -3,16 +3,19 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, UnauthorizedError, NotFoundError } from "@/lib/server-auth";
 import { categorySchema } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
 
     const category = await prisma.category.findFirst({
-      where: { id: params.id, business: { userId: user.id } },
+      where: { id, business: { userId: user.id } },
     });
     if (!category) throw new NotFoundError("Category not found.");
 
@@ -52,14 +55,15 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
 
     const category = await prisma.category.findFirst({
-      where: { id: params.id, business: { userId: user.id } },
+      where: { id, business: { userId: user.id } },
       select: { id: true },
     });
     if (!category) throw new NotFoundError("Category not found.");

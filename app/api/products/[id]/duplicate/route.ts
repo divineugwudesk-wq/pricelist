@@ -5,20 +5,23 @@ import { productSchema } from "@/lib/validation";
 import { getActivePlan, checkProductLimit, PLANS } from "@/lib/plans";
 import { uniqueSlug } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Duplicate a product — copies everything including the image.
  * Counts against the plan product limit like a new product.
  */
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
 
     const source = await prisma.product.findFirst({
-      where: { id: params.id, business: { userId: user.id } },
+      where: { id, business: { userId: user.id } },
     });
     if (!source) {
       return NextResponse.json({ error: "Product not found." }, { status: 404 });

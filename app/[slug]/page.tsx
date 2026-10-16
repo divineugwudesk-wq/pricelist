@@ -6,13 +6,14 @@ import { StorefrontClient } from "@/components/storefront/storefront-client";
 import { recordEvent, newSessionId } from "@/lib/analytics";
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
   try {
-    const store = await getStorefront(params.slug);
-    const title = `${store.business.name} — ${categoryLabel(store.business.category)} | PRICELIST`;
+    const store = await getStorefront(slug);
+    const title = `${store.business.name} â€” ${categoryLabel(store.business.category)} | PRICELIST`;
     return {
       title,
       description:
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: store.business.description ?? undefined,
       },
       alternates: {
-        canonical: `${process.env.APP_URL ?? "http://localhost:3000"}/${params.slug}`,
+        canonical: `${process.env.APP_URL ?? "http://localhost:3000"}/${slug}`,
       },
     };
   } catch {
@@ -41,18 +42,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function StorefrontPage({ params }: Props) {
+  const { slug } = await params;
   // Reserved slugs that belong to static routes.
   const reserved = [
     "login", "register", "forgot-password", "reset-password", "onboarding",
     "dashboard", "admin", "api", "uploads", "pricing", "how-it-works",
   ];
-  if (reserved.includes(params.slug.toLowerCase())) {
-    redirect(`/${params.slug}`);
+  if (reserved.includes(slug.toLowerCase())) {
+    redirect(`/${slug}`);
   }
 
   let store;
   try {
-    store = await getStorefront(params.slug);
+    store = await getStorefront(slug);
   } catch {
     notFound();
   }
@@ -60,7 +62,7 @@ export default async function StorefrontPage({ params }: Props) {
   // Record a store view server-side (accurate even without JS).
   await recordEvent(store.business.id, "STORE_VIEW", {
     sessionId: newSessionId(),
-    metadata: { path: `/${params.slug}` },
+    metadata: { path: `/${slug}` },
   });
 
   return <StorefrontClient initialData={store} />;

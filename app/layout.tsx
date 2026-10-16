@@ -1,25 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Manrope, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-serif",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -64,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${manrope.variable} ${playfair.variable} font-sans`}
+        className="font-sans antialiased"
       >
         <ToastProvider>{children}</ToastProvider>
       </body>

@@ -1,11 +1,8 @@
 // Storage abstraction.
-// Dev/production default: local disk under public/uploads (served as /uploads/*).
+// Dev/production default: returns data URLs (base64-encoded) — no disk access.
 // Set STORAGE_PROVIDER=s3 to use an S3-compatible bucket (implementation hook included).
 // Images are NEVER stored in the database — only URLs are.
 
-import { randomBytes, createHash } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { MAX_IMAGE_BYTES, ALLOWED_IMAGE_TYPES } from "@/lib/validation";
 
 export interface StoredImage {
@@ -20,7 +17,17 @@ export class StorageError extends Error {
   }
 }
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+async function sha256Hex(buffer: Uint8Array): Promise<string> {
+  const hash = await crypto.subtle.digest("SHA-256", buffer);
+  return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function randomBytesToHex(n: number): Promise<string> {
+  const buf = new Uint8Array(n);
+  crypto.getRandomValues(buf);
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 const UPLOAD_URL = "/uploads";
 
 export function validateUpload(contentType: string, sizeBytes: number): void {
@@ -44,7 +51,7 @@ function extensionFor(contentType: string): string {
   }
 }
 
-/** Decode base64 and persist locally. Returns the public URL. */
+/** Encode base64 as a data URL. No disk access. */
 export async function storeImage(
   filename: string,
   contentType: string,
@@ -57,19 +64,18 @@ export async function storeImage(
     return storeImageS3(filename, contentType, base64Data);
   }
 
-  const buffer = Buffer.from(base64Data, "base64");
+  const buffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
   validateUpload(contentType, buffer.length);
 
-  const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 16);
-  const rand = randomBytes(3).toString("hex");
+  const hash = await sha256Hex(buffer).then((h) => h.slice(0, 16));
+  const rand = await randomBytesToHex(3);
   const ext = extensionFor(contentType);
   const safeName = filename.replace(/[^a-zA-Z0-9.-]/g, "_").slice(0, 60) || "image";
   const storedName = `${Date.now().toString(36)}-${rand}-${hash}-${safeName}.${ext}`;
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  await writeFile(path.join(UPLOAD_DIR, storedName), buffer);
+  const dataUrl = `data:${contentType};base64,${base64Data}`;
 
-  return { url: `${UPLOAD_URL}/${storedName}`, size: buffer.length };
+  return { url: dataUrl, size: buffer.length };
 }
 
 /** S3 hook — implement with @aws-sdk/client-s3 when credentials are configured. */
@@ -84,7 +90,7 @@ async function storeImageS3(
   );
 }
 
-/** Best-effort delete; local files are kept unless explicitly removed. */
+/** Best-effort delete; data URLs are not stored on disk. */
 export async function deleteImage(_url: string): Promise<void> {
-  // Intentionally a no-op for local dev to avoid deleting shared assets.
+  // Intentionally a no-op for data URL storage.
 }

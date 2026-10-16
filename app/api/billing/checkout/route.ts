@@ -12,6 +12,8 @@ import { PLANS, PLAN_ORDER } from "@/lib/plans";
 import type { Plan } from "@/lib/db-types";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const planSchema = z.enum(["STARTER", "PRO"]);
 
 /**

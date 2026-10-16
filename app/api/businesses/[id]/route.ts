@@ -3,17 +3,20 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { businessSchema } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 /** Update business profile (business owner only, own business). */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
 
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id, userId: user.id },
     });
     if (!business) {
       return NextResponse.json({ error: "Business not found." }, { status: 404 });

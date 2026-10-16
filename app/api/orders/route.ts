@@ -5,6 +5,8 @@ import { checkoutSchema } from "@/lib/validation";
 import { createOrder, updateOrderStatus } from "@/lib/orders";
 import { formatNaira } from "@/lib/money";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Customer-facing checkout. Creates a real order with price
  * snapshots. No payment processing — the customer completes the

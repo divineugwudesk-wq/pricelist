@@ -3,6 +3,8 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { generateLogoSvg, logoSvgToDataUrl } from "@/lib/logo";
 import { logoGenerateSchema } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 /**
  * Logo concept generator. Always available (offline SVG engine);
  * an AI image provider can be layered in behind the same interface.

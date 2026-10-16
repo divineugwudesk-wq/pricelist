@@ -3,19 +3,22 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const schema = z.object({ logoUrl: z.string().min(1).max(500) });
 
 /** Upload/set the business logo (owner only). */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user) throw new UnauthorizedError();
 
     const business = await prisma.business.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id, userId: user.id },
       select: { id: true, logoUrl: true },
     });
     if (!business) {

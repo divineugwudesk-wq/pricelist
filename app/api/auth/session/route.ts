@@ -1,6 +1,8 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 /** Session info for client-side bootstrapping (role check is re-verified server-side). */
 export async function GET() {
   const session = await getServerSession(authOptions);

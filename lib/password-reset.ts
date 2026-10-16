@@ -1,12 +1,23 @@
 // Password reset token helpers (separated from route files —
 // Next.js route modules may only export HTTP handlers).
 
-import { randomBytes, createHash } from "crypto";
 import { prisma } from "@/lib/db";
 
+async function randomBytesToHex(n: number): Promise<string> {
+  const buf = new Uint8Array(n);
+  crypto.getRandomValues(buf);
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function sha256Hex(data: string): Promise<string> {
+  const buf = new TextEncoder().encode(data);
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function createPasswordResetToken(userId: string): Promise<string> {
-  const token = randomBytes(32).toString("hex");
-  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const token = await randomBytesToHex(32);
+  const tokenHash = await sha256Hex(token);
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
   await prisma.passwordResetToken.deleteMany({ where: { userId } });
   await prisma.passwordResetToken.create({
@@ -18,7 +29,7 @@ export async function createPasswordResetToken(userId: string): Promise<string> 
 export async function consumePasswordResetToken(
   token: string,
 ): Promise<string | null> {
-  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const tokenHash = await sha256Hex(token);
   const record = await prisma.passwordResetToken.findUnique({
     where: { tokenHash },
   });

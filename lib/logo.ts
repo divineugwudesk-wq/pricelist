@@ -54,5 +54,5 @@ export function generateLogoSvg(req: LogoRequest): string {
 }
 
 export function logoSvgToDataUrl(svg: string): string {
-  return `data:image/svg+xml;base64,${Buffer.from(svg, "utf-8").toString("base64")}`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
 }

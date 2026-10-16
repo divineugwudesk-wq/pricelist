@@ -5,6 +5,8 @@ import { PLANS, getMRRKobo, getPlanCounts } from "@/lib/plans";
 import { rangeForDays } from "@/lib/analytics";
 import type { Plan, Role } from "@/lib/db-types";
 
+export const dynamic = "force-dynamic";
+
 /** Platform-wide statistics. */
 export async function GET() {
   try {

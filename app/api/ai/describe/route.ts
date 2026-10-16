@@ -3,6 +3,8 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { describeProduct } from "@/lib/ai";
 import { aiDescribeSchema } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 /**
  * AI product description generator.
  * Works with or without an OpenAI key — the service layer

@@ -3,7 +3,6 @@
 // When PAYSTACK_SECRET_KEY is unset the platform runs in development mode:
 // billing UI clearly labels it and plan changes are applied directly.
 
-import { randomBytes, createHmac, timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/db";
 import { PLANS, type PlanDefinition } from "@/lib/plans";
 import type { Plan, SubscriptionStatus } from "@/lib/db-types";
@@ -21,6 +20,29 @@ export function paystackPublicKey(): string | null {
 interface PaystackInitializeResponse {
   status: boolean;
   data: { authorization_url: string; reference: string };
+}
+
+async function randomBytesToHex(n: number): Promise<string> {
+  const buf = new Uint8Array(n);
+  crypto.getRandomValues(buf);
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function hmacSha512Hex(secretKey: string, data: string): Promise<string> {
+  const keyBuf = new TextEncoder().encode(secretKey);
+  const dataBuf = new TextEncoder().encode(data);
+  const cryptoKey = await crypto.subtle.importKey("raw", keyBuf, { name: "HMAC", hash: "SHA-512" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", cryptoKey, dataBuf);
+  return Array.from(new Uint8Array(sig), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
 }
 
 /**
@@ -43,7 +65,7 @@ export async function initializeSubscriptionCheckout(
       email,
       amount: planDef.priceKobo, // Paystack expects kobo
       currency: "NGN",
-      reference: `pl_${randomBytes(12).toString("hex")}`,
+      reference: `pl_${await randomBytesToHex(12)}`,
       callback_url: `${process.env.APP_URL}/dashboard/billing?paystack=success`,
       metadata: { ...metadata, plan },
     }),
@@ -72,20 +94,15 @@ export async function verifyPaystackTransaction(reference: string) {
  * Verify Paystack webhook signatures (HMAC-SHA512).
  * Constant-time comparison to prevent timing attacks.
  */
-export function verifyWebhookSignature(
+export async function verifyWebhookSignature(
   rawBody: string,
   signatureHeader: string | null,
   secret: string,
-): boolean {
+): Promise<boolean> {
   if (!signatureHeader || !signatureHeader.startsWith("sha512=")) return false;
-  const expected = createHmac("sha512", secret)
-    .update(rawBody)
-    .digest("hex");
+  const expected = await hmacSha512Hex(secret, rawBody);
   const provided = signatureHeader.slice("sha512=".length);
-  const a = Buffer.from(expected);
-  const b = Buffer.from(provided);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
+  return timingSafeEqual(expected, provided);
 }
 
 export interface WebhookEvent {
