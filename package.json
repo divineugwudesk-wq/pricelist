@@ -4,8 +4,8 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "build": "prisma generate && next build",
-        "postbuild": "opennextjs-cloudflare build",
+"build": "opennextjs-cloudflare build --buildCommand \"npm run build:next\"",
+"build:next": "prisma generate && next build",
         "start": "next start",
         "lint": "next lint",
         "typecheck": "tsc --noEmit",
