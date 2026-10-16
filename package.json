@@ -44,6 +44,7 @@
         "browserify-zlib": "^0.2.0",
         "buffer": "^6.0.3",
         "crypto-browserify": "^3.12.1",
+        "esbuild": "^0.24.0",
         "eslint": "8.57.0",
         "eslint-config-next": "14.2.30",
         "events": "^3.3.0",
