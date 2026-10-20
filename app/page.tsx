@@ -181,7 +181,7 @@ export default function LandingPage() {
               Sign in
             </Link>
             <Link href="/register">
-              <Button size="sm">Create a price list</Button>
+              <Button size="sm" className="text-white">Create a price list</Button>
             </Link>
             <button
               className="rounded-md p-2 text-ink-secondary transition-colors hover:bg-neutral-100 md:hidden"
@@ -496,13 +496,13 @@ export default function LandingPage() {
           <h2 className="font-heading text-headline font-bold tracking-tight text-white">
             Make your price list today
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-body leading-relaxed text-navy-200">
+          <p className="mx-auto mt-3 max-w-xl text-body leading-relaxed text-white">
             Add your products, share the link, and take the next order in your
             WhatsApp. It is free for up to 5 products.
           </p>
           <div className="mt-7">
             <Link href="/register">
-              <Button variant="onDark" size="lg">
+              <Button variant="primary" size="lg">
                 Create a free price list
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -512,7 +512,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-navy-950 pb-10 text-navy-200">
+      <footer className="bg-navy-950 pb-10 text-white">
         <div className="mx-auto grid max-w-6xl gap-10 border-t border-navy-800 px-4 pt-12 sm:px-6 md:grid-cols-4">
           <div className="md:col-span-2">
             <Logo light size="md" />

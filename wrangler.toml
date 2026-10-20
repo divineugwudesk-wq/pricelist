@@ -8,6 +8,10 @@ compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 # pricelist.pricelistng.workers.dev (pricelistng.workers.dev does not resolve).
 APP_URL = "https://pricelist.pricelistng.workers.dev"
 NEXTAUTH_URL = "https://pricelist.pricelistng.workers.dev"
+# NEXT_PUBLIC_APP_URL is the copy of APP_URL that reaches the browser. It is
+# read by client components — the onboarding completion screen used to read
+# it directly and, because it was never defined, showed "localhost:3000".
+NEXT_PUBLIC_APP_URL = "https://pricelist.pricelistng.workers.dev"
 
 # DATABASE_URL and AUTH_SECRET are intentionally NOT defined here. They must
 # be set as encrypted secrets on the Worker (Cloudflare dashboard → Settings →
@@ -19,10 +23,61 @@ NEXTAUTH_URL = "https://pricelist.pricelistng.workers.dev"
 # DATABASE_URL must be the Supabase *session pooler* URL, because the direct
 # host (db.<ref>.supabase.co) only has an IPv6 record and Workers cannot
 # reach it.
+#
+# The Workers runtime only trusts publicly signed TLS certificates, and
+# Supabase serves a chain issued by its own "Supabase Root 2021 CA". A Worker
+# therefore cannot open a TLS connection to Supabase directly — the handshake
+# is rejected by the runtime. Use Cloudflare Hyperdrive to reach the database:
+# it terminates the Supabase certificate on Cloudflare's side and hands the
+# Worker a connection the runtime can verify.
+#
+#   npx wrangler cert upload certificate-authority \
+#     --ca-cert certs/prod-ca-2021.crt --name supabase-ca
+#   npx wrangler hyperdrive create pricelist-db \
+#     --connection-string="<supabase pooler url>" \
+#     --ca-certificate-id <CA_CERT_ID> --sslmode verify-full
+#
+# Then uncomment the binding below and fill in the id. lib/db.ts prefers
+# HYPERDRIVE.connectionString over DATABASE_URL when the binding exists.
+#
+# scripts/setup-hyperdrive.mjs performs all of the above and writes the
+# [[hyperdrive]] block at the end of this file.
 
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
+
+# Rate limiting.
+#
+# These are platform bindings rather than external resources: the counters
+# live at the edge, so they hold up under load and against distributed
+# abuse. No dashboard setup is needed — declaring the binding is enough.
+#
+#   RATE_LIMITER_AUTH   sign-in, registration, password reset
+#   RATE_LIMITER_ORDER  public order submission
+#   RATE_LIMITER_EVENT  analytics events
+#
+# The limits below are mirrored in lib/rate-limit.ts. Where a binding is not
+# available (local development, scripts) an in-process counter is used
+# instead, so the endpoints stay protected either way.
+
+[[unsafe.bindings]]
+name = "RATE_LIMITER_AUTH"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
+
+[[unsafe.bindings]]
+name = "RATE_LIMITER_ORDER"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 20, period = 60 }
+
+[[unsafe.bindings]]
+name = "RATE_LIMITER_EVENT"
+type = "ratelimit"
+namespace_id = "1003"
+simple = { limit = 60, period = 60 }
 
 [[services]]
 binding = "WORKER_SELF_REFERENCE"
@@ -34,3 +89,8 @@ bucket_name = "pricelist-opennext-cache"
 
 [images]
 binding = "IMAGES"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "67a3b4a6522b48bb87ffaf96623d03b6"
+localConnectionString = "postgresql://postgres.eifidghkgrrjabukeciq:MGdr7-p%2BpQ%253e%23H@aws-0-eu-west-1.pooler.supabase.com:5432/postgres?sslmode=verify-full&sslrootcert=certs/prod-ca-2021.crt"

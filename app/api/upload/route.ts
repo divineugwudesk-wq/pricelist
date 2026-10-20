@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
-import { storeImage, StorageError } from "@/lib/storage";
+import { storeImage, StorageError, validateImageSignature } from "@/lib/storage";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,8 @@ const uploadSchema = z.object({
 
 /**
  * Image upload endpoint. Validates MIME type and size server-side,
- * stores through the storage abstraction, returns a public URL.
+ * inspects the file bytes, stores through the storage abstraction,
+ * and returns a public URL.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +33,11 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+      const buffer = Uint8Array.from(atob(parsed.data.data), (c) => c.charCodeAt(0));
+      // The declared Content-Type is client-supplied and untrustworthy, so the
+      // decoded bytes are inspected before anything is stored.
+      validateImageSignature(parsed.data.contentType, buffer);
+
       const stored = await storeImage(
         parsed.data.filename,
         parsed.data.contentType,

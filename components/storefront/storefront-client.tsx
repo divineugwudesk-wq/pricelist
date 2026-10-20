@@ -34,9 +34,18 @@ import { buildWhatsAppShareUrl } from "@/lib/whatsapp";
 
 export function StorefrontClient({
   initialData,
+  sessionId,
 }: {
   initialData: StorefrontData;
+  /** The visitor's session id, set by the server as a cookie. */
+  sessionId?: string;
 }) {
+  // Persist the server-issued session id in the cookie the client already
+  // reads, so PRODUCT_VIEW and order events share the same session.
+  if (sessionId) {
+    setSessionCookie(sessionId);
+  }
+
   return (
     <CartProviderWithProducts store={initialData}>
       <StorefrontInner store={initialData} />
@@ -498,7 +507,19 @@ function getSessionId(): string {
     id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     window.localStorage.setItem("pl_session", id);
   }
+  // Mirror the value into the cookie the server uses, so the session id the
+  // client generates locally and the one the server issues are the same.
+  setSessionCookie(id);
   return id;
+}
+
+/** Keep the server-side session cookie in step with the client id. */
+function setSessionCookie(value: string): void {
+  try {
+    document.cookie = `pl_session=${encodeURIComponent(value)}; SameSite=Lax; Max-Age=31536000; Path=/`;
+  } catch {
+    // ignore
+  }
 }
 
 /* Small icon wrappers to keep imports tidy. */

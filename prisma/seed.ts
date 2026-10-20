@@ -1,40 +1,111 @@
-// Seed script — realistic demo data for visual testing.
-// Run: npm run db:seed
+// Demo seed — realistic data for visual testing.
+//
+// This script creates accounts with a known password and fabricates analytics
+// events. Both are fine on a throwaway local database and dangerous anywhere
+// else, so the script refuses to run unless the operator asks for it
+// explicitly.
+//
+//   npm run db:seed
+//
+// Required:
+//   PRICELIST_SEED_MODE=demo          opt in to the demo dataset at all
+//
+// Optional:
+//   PRICELIST_SEED_ALLOW_REMOTE=true   also allow a non-local database
+//   PRICELIST_SEED_PASSWORD=<value>    use a known password instead of a
+//                                      generated one
+//   PRICELIST_SEED_DEMO_ANALYTICS=true fabricate the 30 days of analytics
+//                                      events (off by default: they distort
+//                                      every dashboard that is looking at
+//                                      real traffic)
+//
+// Demo passwords are generated randomly and printed once. They are not stored
+// in this file, so they cannot leak through the repository.
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
-import type { BusinessCategory } from "@/lib/db-types";
+import { randomBytes } from "node:crypto";
+import { SUPABASE_ROOT_CA } from "../lib/db-ca";
+import { assertDemoSeedAllowed, resolveDemoPassword } from "../lib/seed-guard";
 
-// The client is generated with `engineType = "client"`, which always requires
-// a driver adapter — the same wiring the Worker uses in lib/db.ts.
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   throw new Error("DATABASE_URL is not set. Run this from the project root so .env is loaded.");
 }
+const target: string = connectionString;
 
+// The same rules as lib/db.ts: certificate verification stays on, and the
+// Supabase root CA is added to the trust store.
 const pool = new Pool({
-  connectionString: connectionString.replace(/([?&])sslmode=[^&]*/, "$1").replace(/\?&/, "?").replace(/[?&]$/, ""),
-  ssl: { rejectUnauthorized: false },
+  connectionString: connectionString
+    .replace(/([?&])sslmode=[^&]*/, "$1")
+    .replace(/\?&/, "?")
+    .replace(/[?&]$/, ""),
+  ssl: { rejectUnauthorized: true, ca: SUPABASE_ROOT_CA },
   max: 1,
 });
 
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
+/**
+ * The demo dataset creates accounts with a published password and, optionally,
+ * thousands of fabricated analytics events. It must never run against a
+ * database that holds real data.
+ */
+function assertDemoEnvironment(target: string): void {
+  let host = "";
+  try {
+    host = new URL(target).hostname.toLowerCase();
+  } catch {
+    // A non-URL connection string is treated as local, since Prisma also
+    // accepts libpq-style strings.
+  }
+
+  assertDemoSeedAllowed({
+    mode: process.env.PRICELIST_SEED_MODE,
+    nodeEnv: process.env.NODE_ENV,
+    allowRemote: process.env.PRICELIST_SEED_ALLOW_REMOTE,
+    host,
+  });
+}
+
+/**
+ * The demo password. Generated randomly unless the operator supplies one, so
+ * the credential never appears in the repository.
+ */
+async function demoPassword(): Promise<string> {
+  return resolveDemoPassword(process.env.PRICELIST_SEED_PASSWORD, () =>
+    randomBytes(12).toString("base64url"),
+  );
+}
+
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 async function main() {
-  console.log("🌱 Seeding PRICELIST…");
+  assertDemoEnvironment(target);
+
+  const withAnalytics = process.env.PRICELIST_SEED_DEMO_ANALYTICS === "true";
+  const demoPasswordValue = await demoPassword();
+  const passwordHash = await bcrypt.hash(demoPasswordValue, 10);
+
+  console.log("🌱 Seeding PRICELIST demo dataset…");
 
   // ---- Users ----
-  const demoPass = await bcrypt.hash("demo1234", 10);
-  const adminPass = await bcrypt.hash("admin1234", 10);
-
+  // The demo owner and the platform administrator share the one generated
+  // password. It is printed once at the end and never stored in this file.
   const demo = await prisma.user.upsert({
     where: { email: "demo@pricelist.ng" },
     update: {},
     create: {
       name: "Chuks Okafor",
       email: "demo@pricelist.ng",
-      password: demoPass,
+      password: passwordHash,
       phone: "0801 234 5678",
       role: "USER",
     },
@@ -46,7 +117,7 @@ async function main() {
     create: {
       name: "PRICELIST Admin",
       email: "admin@pricelist.ng",
-      password: adminPass,
+      password: passwordHash,
       role: "ADMIN",
     },
   });
@@ -187,7 +258,7 @@ async function main() {
     create: {
       name: "Ada Nwosu",
       email: "ada@pricelist.ng",
-      password: demoPass,
+      password: passwordHash,
       role: "USER",
     },
   });
@@ -273,7 +344,7 @@ async function main() {
     create: {
       name: "Mama T",
       email: "mama@pricelist.ng",
-      password: demoPass,
+      password: passwordHash,
       role: "USER",
     },
   });
@@ -351,58 +422,66 @@ async function main() {
     create: { userId: mama.id, plan: "FREE", status: "ACTIVE", provider: "manual", startDate: new Date() },
   });
 
-  // ---- Analytics events for realistic dashboards ----
-  const now = Date.now();
-  const events = [];
-  for (let d = 29; d >= 0; d--) {
-    const date = new Date(now - d * 86_400_000);
-    const views = Math.floor(20 + Math.random() * 80);
-    const clicks = Math.floor(views * (0.08 + Math.random() * 0.1));
-    for (let i = 0; i < views; i++) {
-      events.push({
-        businessId: kicks.id,
-        eventType: "STORE_VIEW",
-        sessionId: `seed-${d}-${i}`,
-        createdAt: date,
+  // ---- Analytics events ----
+  // Fabricated traffic is opt-in. It is useful for judging the dashboard
+  // layout, but on a real database it silently distorts every metric the
+  // seller sees, so it is never created by default.
+  if (withAnalytics) {
+    const now = Date.now();
+    const events = [];
+    for (let d = 29; d >= 0; d--) {
+      const date = new Date(now - d * 86_400_000);
+      const views = Math.floor(20 + Math.random() * 80);
+      const clicks = Math.floor(views * (0.08 + Math.random() * 0.1));
+      for (let i = 0; i < views; i++) {
+        events.push({
+          businessId: kicks.id,
+          eventType: "STORE_VIEW",
+          sessionId: `seed-${d}-${i}`,
+          createdAt: date,
+        });
+      }
+      for (let i = 0; i < clicks; i++) {
+        events.push({
+          businessId: kicks.id,
+          eventType: "WHATSAPP_CLICK",
+          sessionId: `seed-${d}-c${i}`,
+          createdAt: date,
+        });
+      }
+      const prod = await prisma.product.findFirst({ where: { businessId: kicks.id }, select: { id: true } });
+      for (let i = 0; i < Math.floor(views * 0.5); i++) {
+        events.push({
+          businessId: kicks.id,
+          eventType: "PRODUCT_VIEW",
+          productId: prod?.id ?? null,
+          sessionId: `seed-${d}-p${i}`,
+          createdAt: date,
+        });
+      }
+    }
+    // Chunk inserts (Postgres parameter limit).
+    for (let i = 0; i < events.length; i += 500) {
+      await prisma.analyticsEvent.createMany({
+        data: events.slice(i, i + 500),
       });
     }
-    for (let i = 0; i < clicks; i++) {
-      events.push({
-        businessId: kicks.id,
-        eventType: "WHATSAPP_CLICK",
-        sessionId: `seed-${d}-c${i}`,
-        createdAt: date,
-      });
-    }
-    const prod = await prisma.product.findFirst({ where: { businessId: kicks.id }, select: { id: true } });
-    for (let i = 0; i < Math.floor(views * 0.5); i++) {
-      events.push({
-        businessId: kicks.id,
-        eventType: "PRODUCT_VIEW",
-        productId: prod?.id ?? null,
-        sessionId: `seed-${d}-p${i}`,
-        createdAt: date,
-      });
-    }
-  }
-  // Chunk inserts (Postgres parameter limit).
-  for (let i = 0; i < events.length; i += 500) {
-    await prisma.analyticsEvent.createMany({
-      data: events.slice(i, i + 500),
-    });
+    console.log(`   Fabricated ${events.length} analytics events.`);
+  } else {
+    console.log("   Skipped analytics events (set PRICELIST_SEED_DEMO_ANALYTICS=true to include them).");
   }
 
+  console.log("");
   console.log("✅ Seed complete");
-  console.log("   Demo owner: demo@pricelist.ng / demo1234");
-  console.log("   Admin:      admin@pricelist.ng / admin1234");
-  console.log("   Stores:     /chuks-kicks, /ada-beauty, /mama-t-kitchen");
-}
-
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  console.log("   Owner:  demo@pricelist.ng");
+  console.log("   Admin:  admin@pricelist.ng");
+  console.log("   Stores: /chuks-kicks, /ada-beauty, /mama-t-kitchen");
+  console.log("");
+  console.log("   Password for all three accounts (generated for this run, not stored in the repo):");
+  console.log("");
+  console.log(`       ${demoPasswordValue}`);
+  console.log("");
+  console.log("   Save it now — it is not recoverable.");
 }
 
 main()

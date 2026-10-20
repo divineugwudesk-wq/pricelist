@@ -27,6 +27,8 @@ interface SubscriptionData {
   plan: Plan;
   businessId: string | null;
   paystackConfigured: boolean;
+  billingAvailable: boolean;
+  devBilling: boolean;
   paystackPublicKey: string | null;
 }
 
@@ -39,11 +41,14 @@ interface UsageData {
 const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   ACTIVE: "Active",
   TRIALING: "Trialing",
-  PAST_DUE: "Past due",
+  PAST_DUE: "Payment due",
+  CANCELLING: "Ends soon",
   CANCELLED: "Cancelled",
   EXPIRED: "Expired",
   INACTIVE: "Inactive",
 };
+
+const PERIOD_DAYS = 30;
 
 export default function BillingPage() {
   const toast = useToast();
@@ -81,8 +86,78 @@ export default function BillingPage() {
     void load();
   }, [load]);
 
+  /**
+   * Coming back from Paystack.
+   *
+   * Paystack redirects to the callback URL with `paystack=success` and the
+   * transaction `reference`. The plan is only activated after the server has
+   * verified that payment with Paystack, so the page never claims success on
+   * its own.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const state = params.get("paystack");
+    const reference = params.get("reference") ?? params.get("trxref");
+    if (!state) return;
+
+    if (state === "cancelled") {
+      toast.error("Payment cancelled", "You have not been charged.");
+      window.history.replaceState({}, "", "/dashboard/billing");
+      return;
+    }
+
+    if (state !== "success" || !reference) {
+      toast.error("Payment not completed", "We could not confirm the payment. Please try again.");
+      window.history.replaceState({}, "", "/dashboard/billing");
+      return;
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/billing/checkout", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reference }),
+        });
+        const result = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (!res.ok) {
+          toast.error(
+            result.error ?? "Payment could not be verified",
+            "If you were charged, contact support and we will sort it out.",
+          );
+        } else {
+          toast.success(
+            `${PLANS[result.plan as Plan]?.name ?? "Your plan"} is active`,
+            `You have ${PERIOD_DAYS} days of access. Pay again to continue after that.`,
+          );
+        }
+        await load();
+      } catch {
+        if (!cancelled) {
+          toast.error("Could not verify the payment", "Please try again in a moment.");
+        }
+      } finally {
+        window.history.replaceState({}, "", "/dashboard/billing");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [load, toast]);
+
   async function upgrade(plan: Plan) {
     if (!data) return;
+    if (!data.billingAvailable) {
+      toast.error(
+        "Payments are not available right now",
+        "Please try again later or contact support.",
+      );
+      return;
+    }
     setCheckingOut(plan);
     try {
       const res = await fetch("/api/billing/checkout", {
@@ -102,7 +177,7 @@ export default function BillingPage() {
       }
       // Development mode — confirm and apply locally.
       const confirmed = window.confirm(
-        `Development mode (Paystack is not configured).\n\nActivate the ${PLANS[plan].name} plan (₦${PLANS[plan].priceKobo / 100}/month) for this account? In production this would be a real Paystack payment.`,
+        `Development mode (Paystack is not configured).\n\nActivate the ${PLANS[plan].name} plan (₦${PLANS[plan].priceKobo / 100} for ${PERIOD_DAYS} days) for this account? In production this would be a real Paystack payment.`,
       );
       if (!confirmed) return;
       const applyRes = await fetch("/api/billing/checkout", {
@@ -116,7 +191,7 @@ export default function BillingPage() {
       }
       toast.success(
         `${PLANS[plan].name} activated`,
-        "Your plan limits and features are now updated.",
+        `You have ${PERIOD_DAYS} days of access. Pay again to continue after that.`,
       );
       await load();
     } catch {
@@ -129,7 +204,7 @@ export default function BillingPage() {
   async function cancel() {
     if (!data) return;
     const confirmed = window.confirm(
-      "Cancel your subscription? You'll keep your plan until the end of the billing period, then return to Free (5 products).",
+      `Cancel your subscription?\n\nYou'll keep your plan until ${data.subscription?.renewalDate ? fmtDate(data.subscription.renewalDate) : "the end of the period"}, then return to Free (5 products). We do not charge you automatically, so nothing else will be taken.`,
     );
     if (!confirmed) return;
     setCancelling(true);
@@ -140,10 +215,14 @@ export default function BillingPage() {
         body: JSON.stringify({ action: "cancel" }),
       });
       if (!res.ok) {
-        toast.error("Could not cancel", "Please try again.");
+        const result = await res.json().catch(() => ({}));
+        toast.error(result.error ?? "Could not cancel", "Please try again.");
         return;
       }
-      toast.success("Subscription cancelled", "You'll stay on your plan until renewal.");
+      toast.success(
+        "Subscription cancelled",
+        "You'll stay on your plan until the end of the period.",
+      );
       await load();
     } finally {
       setCancelling(false);
@@ -196,9 +275,9 @@ export default function BillingPage() {
             <p className="mt-1 text-body text-ink-secondary">
               {formatNaira(PLANS[currentPlan].priceKobo)}/month
             </p>
-            {sub?.renewalDate && (
+            {sub?.renewalDate && currentPlan !== "FREE" && (
               <p className="mt-2 text-caption text-ink-muted">
-                Renews {fmtDate(sub.renewalDate)}
+                Access ends {fmtDate(sub.renewalDate)}
               </p>
             )}
           </CardBody>
@@ -242,7 +321,9 @@ export default function BillingPage() {
             <p className="mt-1.5 text-caption leading-relaxed text-ink-muted">
               {data.paystackConfigured
                 ? "Payments are processed securely by Paystack. We never see your card details."
-                : "Paystack is not configured. Plan changes apply locally for development."}
+                : data.devBilling
+                  ? "Paystack is not configured. Plan changes apply locally for development only."
+                  : "Payments are not available right now. Please try again later or contact support."}
             </p>
           </CardBody>
         </Card>
@@ -281,6 +362,11 @@ export default function BillingPage() {
                   </span>
                   <span className="text-caption text-ink-muted">/month</span>
                 </p>
+                {plan.priceKobo > 0 && (
+                  <p className="mt-1 text-caption text-ink-muted">
+                    One payment covers {PERIOD_DAYS} days. Pay again to continue.
+                  </p>
+                )}
                 <ul className="mt-5 flex-1 space-y-2.5">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2.5 text-caption text-ink-secondary">
@@ -301,6 +387,7 @@ export default function BillingPage() {
                     className="mt-6 w-full"
                     size="lg"
                     loading={checkingOut === planId}
+                    disabled={!data.billingAvailable}
                     onClick={() => void upgrade(planId)}
                   >
                     Upgrade to {plan.name}
@@ -321,10 +408,11 @@ export default function BillingPage() {
         <div>
           <p className="text-body font-medium text-ink">Secure payments</p>
           <p className="mt-0.5 text-caption leading-relaxed text-ink-muted">
-            Subscriptions are billed in NGN through Paystack — the same payment
-            infrastructure used by Nigerian banks. Your card details never touch
-            PRICELIST servers. Cancel anytime; your plan stays active until the
-            end of the period.
+            Payments are in NGN through Paystack — the same payment infrastructure
+            used by Nigerian banks. Your card details never touch PRICELIST
+            servers. We never charge you automatically: each payment covers{" "}
+            {PERIOD_DAYS} days, and you can cancel at any time to keep the days
+            you have already paid for.
           </p>
         </div>
       </div>

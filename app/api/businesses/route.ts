@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { businessSchema, businessHoursSchema } from "@/lib/validation";
-import { uniqueSlug } from "@/lib/utils";
+import { uniqueSlug, isReservedSlug } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 

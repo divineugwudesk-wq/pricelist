@@ -28,6 +28,7 @@ export type SubscriptionStatus =
   | "ACTIVE"
   | "TRIALING"
   | "PAST_DUE"
+  | "CANCELLING"
   | "CANCELLED"
   | "EXPIRED"
   | "INACTIVE";

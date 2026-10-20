@@ -9,6 +9,12 @@ import { Search, ShoppingBag, MessageCircle } from "lucide-react";
 import { ProductCard, type StoreProduct } from "./product-card";
 import { getTheme } from "@/lib/themes";
 import { formatNaira } from "@/lib/money";
+import {
+  imagesJpg,
+  shoppingWebp,
+  shopping2Webp,
+  shopping1Webp,
+} from "@/lib/sample-images";
 
 const SAMPLE_PRODUCTS: StoreProduct[] = [
   {
@@ -18,7 +24,7 @@ const SAMPLE_PRODUCTS: StoreProduct[] = [
     description: "White and navy. Genuine leather, sizes 36–46.",
     priceKobo: 4_500_000,
     salePriceKobo: 3_850_000,
-    imageUrl: null,
+    imageUrl: shoppingWebp,
     type: "PRODUCT",
     isFeatured: true,
     categoryId: "sneakers",
@@ -30,7 +36,7 @@ const SAMPLE_PRODUCTS: StoreProduct[] = [
     description: "Minimal white sneakers with a durable rubber sole.",
     priceKobo: 2_850_000,
     salePriceKobo: null,
-    imageUrl: null,
+    imageUrl: shopping2Webp,
     type: "PRODUCT",
     isFeatured: true,
     categoryId: "sneakers",
@@ -42,7 +48,7 @@ const SAMPLE_PRODUCTS: StoreProduct[] = [
     description: "Soft-bed slides in black, sizes 38–45.",
     priceKobo: 1_800_000,
     salePriceKobo: 1_400_000,
-    imageUrl: null,
+    imageUrl: shopping1Webp,
     type: "PRODUCT",
     isFeatured: false,
     categoryId: "sneakers",
@@ -54,7 +60,7 @@ const SAMPLE_PRODUCTS: StoreProduct[] = [
     description: "Heavyweight 450gsm, relaxed fit. Charcoal or olive.",
     priceKobo: 3_200_000,
     salePriceKobo: null,
-    imageUrl: null,
+    imageUrl: imagesJpg,
     type: "PRODUCT",
     isFeatured: true,
     categoryId: "streetwear",

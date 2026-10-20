@@ -15,9 +15,27 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   if (!session?.user?.id) return null;
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, name: true, email: true, role: true, suspended: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      suspended: true,
+      sessionVersion: true,
+    },
   });
   if (!user || user.suspended) return null;
+
+  // The session cookie is a JWT, so it stays cryptographically valid after a
+  // password change. Comparing the session version the token was issued
+  // against the one on the account ends the session when the password
+  // changes or the account is otherwise invalidated. The user row is read
+  // above anyway, so this costs no extra query.
+  const tokenVersion = session.user.sessionVersion;
+  if (tokenVersion !== undefined && tokenVersion !== user.sessionVersion) {
+    return null;
+  }
+
   return {
     ...user,
     role: user.role as "USER" | "ADMIN",

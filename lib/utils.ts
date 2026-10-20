@@ -15,12 +15,28 @@ export function slugify(input: string): string {
     .slice(0, 60);
 }
 
-export function uniqueSlug(base: string, existing: Set<string>): string {
+export function uniqueSlug(
+  base: string,
+  existing: Set<string>,
+  reserved: string[] = [],
+): string {
+  const reservedSet = new Set(reserved.map((s) => s.toLowerCase()));
+  const isTaken = (candidate: string) =>
+    existing.has(candidate) || reservedSet.has(candidate);
+
   const slug = slugify(base) || "store";
-  if (!existing.has(slug)) return slug;
-  const suffix = Math.random().toString(36).slice(2, 6);
-  const candidate = `${slug}-${suffix}`;
-  return existing.has(candidate) ? `${slug}-${Math.random().toString(36).slice(2, 8)}` : candidate;
+  if (!isTaken(slug)) return slug;
+
+  // A couple of random attempts. The `slug @unique` constraint is the final
+  // word, so a collision here surfaces as a 500 rather than a silent wrong
+  // slug — but reserved slugs and existing slugs are both known up front.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const suffix = Math.random().toString(36).slice(2, 6 + attempt);
+    const candidate = `${slug}-${suffix}`;
+    if (!isTaken(candidate)) return candidate;
+  }
+
+  throw new Error("Could not generate a unique slug. Try a different store name.");
 }
 
 export function formatDate(date: Date | string, locale = "en-GB"): string {
@@ -54,4 +70,35 @@ export function clamp(n: number, min: number, max: number): number {
 
 export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Slugs that must never be assigned to a business.
+ *
+ * These are the static routes the App Router reserves. A business named
+ * "Admin" would otherwise get the slug `admin`, and `app/[slug]/page.tsx`
+ * then redirects that storefront onto the admin page, making the store
+ * permanently unreachable. The list is derived from the route manifest so it
+ * cannot drift from the route tree.
+ */
+export function reservedSlugs(): string[] {
+  return [
+    "",
+    "login",
+    "register",
+    "forgot-password",
+    "reset-password",
+    "onboarding",
+    "dashboard",
+    "admin",
+    "api",
+    "uploads",
+    "pricing",
+    "how-it-works",
+  ];
+}
+
+/** Whether a slug collides with a reserved route. */
+export function isReservedSlug(slug: string): boolean {
+  return reservedSlugs().includes(slug.toLowerCase());
 }

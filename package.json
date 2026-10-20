@@ -14,7 +14,11 @@
         "db:generate": "prisma generate && node scripts/patch-prisma-client.mjs",
         "db:push": "prisma db push",
         "db:migrate": "prisma migrate dev",
-        "db:seed": "tsx prisma/seed.ts"
+        "db:migrate:deploy": "prisma migrate deploy",
+        "db:seed": "tsx prisma/seed.ts",
+        "db:reset:local": "node scripts/local-dev/reset-local-db.mjs",
+        "ca:sync": "node scripts/sync-db-ca.mjs",
+        "prebuild": "node scripts/sync-db-ca.mjs"
     },
     "overrides": {
         "esbuild": "^0.24.0"
@@ -23,19 +27,18 @@
         "@prisma/adapter-pg": "^6.19.3",
         "@prisma/client": "^6.19.3",
         "bcryptjs": "2.4.3",
-        "build": "^0.1.4",
         "clsx": "2.1.1",
         "esbuild": "^0.24.0",
         "lucide-react": "0.469.0",
         "next": "^15.5.28",
         "next-auth": "4.24.11",
-        "npm": "^12.2.0",
+        "nodemailer": "^6.10.1",
         "pg": "^8.16.3",
+        "pg-cloudflare": "^1.4.1",
         "prisma": "^6.19.3",
         "qrcode": "1.5.4",
         "react": "18.3.1",
         "react-dom": "18.3.1",
-        "run": "^2.1.8",
         "tailwind-merge": "2.6.0",
         "zod": "3.24.1"
     },
@@ -44,6 +47,7 @@
         "@opennextjs/cloudflare": "^1.20.12",
         "@types/bcryptjs": "2.4.6",
         "@types/node": "22.10.2",
+        "@types/nodemailer": "^8.0.2",
         "@types/pg": "^8.15.5",
         "@types/qrcode": "1.5.5",
         "@types/react": "18.3.18",

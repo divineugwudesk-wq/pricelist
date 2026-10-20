@@ -4,6 +4,7 @@ import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { checkoutSchema } from "@/lib/validation";
 import { createOrder, updateOrderStatus } from "@/lib/orders";
 import { formatNaira } from "@/lib/money";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,9 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceRateLimit(request, "order");
+    if (limited) return limited;
+
     const body = await request.json();
     const parsed = checkoutSchema.safeParse(body);
     if (!parsed.success) {

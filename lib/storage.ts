@@ -94,3 +94,61 @@ async function storeImageS3(
 export async function deleteImage(_url: string): Promise<void> {
   // Intentionally a no-op for data URL storage.
 }
+
+/**
+ * The first bytes of each supported image format, as a hex string.
+ *
+ * The declared `Content-Type` is client-supplied and untrustworthy, so the
+ * decoded bytes are inspected before anything is stored. A file uploaded with
+ * `image/png` whose first bytes are not a PNG signature is rejected even
+ * though the type and the size both pass.
+ */
+const IMAGE_SIGNATURES: Record<string, string> = {
+  "image/png": "89504e470d0a1a0a",
+  "image/jpeg": "ffd8ff",
+  "image/webp": "52494646", // RIFF container — the WEBP marker follows at offset 8
+  "image/gif": "47494638", // GIF8
+};
+
+function hexPrefix(buffer: Uint8Array, length: number): string {
+  return Array.from(buffer.slice(0, length))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Reject an upload whose bytes do not match the declared content type.
+ *
+ * WEBP is checked at offset 8 because the RIFF header is shared with AVI and
+ * other containers. Anything not in the allow-list is rejected outright.
+ */
+export function validateImageSignature(
+  contentType: string,
+  buffer: Uint8Array,
+): void {
+  const signature = IMAGE_SIGNATURES[contentType];
+  if (!signature) {
+    throw new StorageError(
+      `Unsupported file type "${contentType}". Allowed: PNG, JPG, WEBP, GIF.`,
+    );
+  }
+
+  if (contentType === "image/webp") {
+    // "RIFF" + 4 bytes size + "WEBP"
+    const riff = hexPrefix(buffer, 4);
+    const webp = hexPrefix(new Uint8Array(buffer.buffer, buffer.byteOffset + 8, 4), 4);
+    if (riff !== "52494646" || webp !== "57454250") {
+      throw new StorageError(
+        "The file is not a valid WEBP image.",
+      );
+    }
+    return;
+  }
+
+  const prefix = hexPrefix(buffer, signature.length / 2);
+  if (prefix !== signature) {
+    throw new StorageError(
+      `The file is not a valid ${contentType.replace("image/", "")} image.`,
+    );
+  }
+}

@@ -40,6 +40,16 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     throw new NotFoundError("One or more products are unavailable.");
   }
 
+  // A suspended business's storefront 404s, but its API would otherwise
+  // still accept and persist orders. Close that gap here.
+  const business = await prisma.business.findUnique({
+    where: { id: input.businessId },
+    select: { suspended: true },
+  });
+  if (business?.suspended) {
+    throw new NotFoundError("Storefront not found.");
+  }
+
   const lines: CartLine[] = input.items.map((item) => {
     const product = products.find((p) => p.id === item.productId)!;
     return {

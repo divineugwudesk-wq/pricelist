@@ -139,19 +139,14 @@ export default function AdminPage() {
   }, []);
 
   const loadTab = useCallback(async () => {
+    const res = await fetch(
+      `/api/admin?tab=${encodeURIComponent(tab)}&q=${encodeURIComponent(q)}${roleFilter !== "ALL" ? `&role=${encodeURIComponent(roleFilter)}` : ""}`,
+      { method: "GET" },
+    );
+    const data = await res.json();
     if (tab === "users") {
-      const res = await fetch("/api/admin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ q, role: roleFilter }),
-      });
-      const data = await res.json();
       setUsers(data.users ?? []);
     } else {
-      const res = await fetch(`/api/admin?q=${encodeURIComponent(q)}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
       setBusinesses(data.businesses ?? []);
       setSubscriptions(data.subscriptions ?? []);
       setOrders(data.recentOrders ?? []);

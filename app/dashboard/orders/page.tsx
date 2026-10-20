@@ -19,7 +19,7 @@ import { Select } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { formatNaira } from "@/lib/money";
 import { formatDateTime } from "@/lib/utils";
-import { normalizeWhatsAppNumber, buildOrderMessage } from "@/lib/whatsapp";
+import { normalizeWhatsAppNumber } from "@/lib/whatsapp";
 
 type OrderStatus = "NEW" | "CONTACTED" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, getCurrentUser } from "@/lib/server-auth";
+import { requireAdmin } from "@/lib/server-auth";
 import { prisma } from "@/lib/db";
 import { PLANS, getMRRKobo, getPlanCounts } from "@/lib/plans";
 import { rangeForDays } from "@/lib/analytics";
@@ -8,9 +8,37 @@ import type { Plan, Role } from "@/lib/db-types";
 export const dynamic = "force-dynamic";
 
 /** Platform-wide statistics. */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await requireAdmin();
+    const { searchParams } = new URL(request.url);
+    const tab = searchParams.get("tab") ?? "businesses";
+    const q = searchParams.get("q") ?? "";
+    const roleFilter = searchParams.get("role") ?? "ALL";
+
+    if (tab === "users") {
+      const users = await prisma.user.findMany({
+        where: {
+          ...(q
+            ? { OR: [{ name: { contains: q } }, { email: { contains: q } }] }
+            : {}),
+          ...(roleFilter !== "ALL" ? { role: roleFilter as Role } : {}),
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          suspended: true,
+          createdAt: true,
+          business: { select: { name: true, slug: true, suspended: true } },
+          subscription: { select: { plan: true, status: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      });
+      return NextResponse.json({ users });
+    }
 
     const [
       userCount,
@@ -57,6 +85,50 @@ export async function GET() {
         totalOrderValueKobo: orderAgg._sum.total ?? 0,
       },
     });
+  } catch (error) {
+    const status = (error as Error & { status?: number }).status ?? 500;
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Forbidden" },
+      { status },
+    );
+  }
+}
+
+/** Search/list users (admin only). */
+export async function POST(request: NextRequest) {
+  try {
+    await requireAdmin();
+    const body = (await request.json()) as {
+      q?: string;
+      role?: Role | "ALL";
+    };
+    const q = (body.q ?? "").trim();
+    const users = await prisma.user.findMany({
+      where: {
+        ...(q
+          ? {
+              OR: [
+                { name: { contains: q } },
+                { email: { contains: q } },
+              ],
+            }
+          : {}),
+        ...(body.role && body.role !== "ALL" ? { role: body.role } : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        suspended: true,
+        createdAt: true,
+        business: { select: { name: true, slug: true, suspended: true } },
+        subscription: { select: { plan: true, status: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    });
+    return NextResponse.json({ users });
   } catch (error) {
     const status = (error as Error & { status?: number }).status ?? 500;
     return NextResponse.json(
@@ -117,120 +189,3 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
-
-/** Search/list users (admin only). */
-export async function POST(request: NextRequest) {
-  try {
-    await requireAdmin();
-    const body = (await request.json()) as {
-      q?: string;
-      role?: Role | "ALL";
-    };
-    const q = (body.q ?? "").trim();
-    const users = await prisma.user.findMany({
-      where: {
-        ...(q
-          ? {
-              OR: [
-                { name: { contains: q } },
-                { email: { contains: q } },
-              ],
-            }
-          : {}),
-        ...(body.role && body.role !== "ALL" ? { role: body.role } : {}),
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        suspended: true,
-        createdAt: true,
-        business: { select: { name: true, slug: true, suspended: true } },
-        subscription: { select: { plan: true, status: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
-    return NextResponse.json({ users });
-  } catch (error) {
-    const status = (error as Error & { status?: number }).status ?? 500;
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Forbidden" },
-      { status },
-    );
-  }
-}
-
-/** List businesses and subscriptions (admin only). */
-export async function DELETE(request: NextRequest) {
-  try {
-    await requireAdmin();
-    const { searchParams } = new URL(request.url);
-    const q = searchParams.get("q") ?? "";
-
-    const businesses = await prisma.business.findMany({
-      where: {
-        ...(q
-          ? {
-              OR: [
-                { name: { contains: q } },
-                { slug: { contains: q } },
-              ],
-            }
-          : {}),
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        category: true,
-        theme: true,
-        suspended: true,
-        createdAt: true,
-        user: { select: { name: true, email: true } },
-        _count: { select: { products: true, orders: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
-
-    const subscriptions = await prisma.subscription.findMany({
-      where: { plan: { in: ["STARTER", "PRO"] as Plan[] } },
-      select: {
-        plan: true,
-        status: true,
-        provider: true,
-        startDate: true,
-        renewalDate: true,
-        createdAt: true,
-        user: { select: { name: true, email: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    });
-
-    const recentOrders = await prisma.order.findMany({
-      select: {
-        id: true,
-        customerName: true,
-        total: true,
-        status: true,
-        createdAt: true,
-        business: { select: { name: true, slug: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    });
-
-    return NextResponse.json({ businesses, subscriptions, recentOrders });
-  } catch (error) {
-    const status = (error as Error & { status?: number }).status ?? 500;
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Forbidden" },
-      { status },
-    );
-  }
-}
-
-void getCurrentUser;

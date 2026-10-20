@@ -1,24 +1,29 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { generateLogoSvg, logoSvgToDataUrl } from "@/lib/logo";
 import { getTheme, THEMES } from "@/lib/themes";
 import { slugify, uniqueSlug } from "@/lib/utils";
 import { getActivePlan } from "@/lib/plans";
-import { prisma } from "@/lib/db";
 
-// Note: getActivePlan touches the database; in these unit tests we
-// only verify its failure-free export and the pure helpers around it.
+const prismaState = vi.hoisted(() => ({
+  findUnique: vi.fn(),
+  update: vi.fn(),
+}));
+
+vi.mock("@/lib/db", () => ({
+  prisma: {
+    subscription: prismaState,
+  },
+}));
 
 describe("authorization model (pure parts)", () => {
   it(
     "exposes plan resolution that defaults to FREE without a subscription",
     async () => {
-      // With a non-existent user id the plan falls back to FREE.
+      // The database is mocked, so the suite never needs a live connection.
+      prismaState.findUnique.mockResolvedValue(null);
       const plan = await getActivePlan("nonexistent-user-id");
       expect(plan).toBe("FREE");
     },
-    // The first call opens a pooled connection to Postgres and initialises
-    // the WASM query compiler, which can take longer than the default budget.
-    30_000,
   );
 });
 
@@ -99,5 +104,3 @@ describe("logo generator", () => {
     expect(decoded).toBe(svg);
   });
 });
-
-void prisma;

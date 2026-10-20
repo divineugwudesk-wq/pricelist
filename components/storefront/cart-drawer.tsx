@@ -237,7 +237,10 @@ export function CheckoutModal({
         lines: lines.map((l) => ({
           name: l.name,
           quantity: l.quantity,
-          priceKobo: l.priceKobo,
+          // The effective (sale) price, so the message and the order total
+          // always agree. Using the list price here made a sale item read
+          // "Price: ₦85,000 / Subtotal: ₦72,000".
+          priceKobo: l.effectivePriceKobo,
           subtotalKobo: l.lineTotalKobo,
         })),
         subtotalKobo: cart.totals.subtotalKobo,
@@ -250,7 +253,9 @@ export function CheckoutModal({
       const url = buildWhatsAppOrderUrl(payload);
       if (!url) throw new Error("Invalid WhatsApp number");
 
-      trackEvent(store.business.id, "WHATSAPP_CLICK", { sessionId: getSessionId() });
+      // WHATSAPP_CLICK is recorded server-side, in createOrder, so it is
+      // counted exactly once per order regardless of retries or ad-blockers.
+      // Recording it here as well double-counted every order in analytics.
 
       onOrderPlaced(url);
       cart.clear();

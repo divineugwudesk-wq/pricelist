@@ -56,6 +56,18 @@ export async function PATCH(
       data.theme = parsed.data.theme;
     }
     if (parsed.data.accentColor !== undefined) {
+      // Accent colour is a Pro feature, enforced server-side. The UI blocks it
+      // client-side as well, but that is not a control — a direct PATCH here
+      // would otherwise accept it on any plan.
+      if (parsed.data.accentColor && plan !== "PRO") {
+        return NextResponse.json(
+          {
+            error: "Accent colours are a Pro feature. Upgrade to Pro.",
+            code: "ACCENT_PRO_ONLY",
+          },
+          { status: 403 },
+        );
+      }
       data.accentColor = parsed.data.accentColor;
     }
     if (parsed.data.showBranding !== undefined) {

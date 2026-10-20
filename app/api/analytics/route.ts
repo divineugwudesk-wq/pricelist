@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/server-auth";
-import { recordEvent, newSessionId, AnalyticsEventType } from "@/lib/analytics";
+import { recordEvent, newSessionId, getStoreAnalytics, rangeForDays } from "@/lib/analytics";
+import { prisma } from "@/lib/db";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +20,9 @@ const eventSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceRateLimit(request, "event");
+    if (limited) return limited;
+
     const body = await request.json();
     const parsed = eventSchema.safeParse(body);
     if (!parsed.success) {
@@ -25,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate guard: at most ~30 events per session per request burst.
-    await recordEvent(parsed.data.businessId, parsed.data.eventType as AnalyticsEventType, {
+    await recordEvent(parsed.data.businessId, parsed.data.eventType, {
       productId: parsed.data.productId ?? null,
       sessionId: parsed.data.sessionId ?? newSessionId(),
     });
@@ -58,7 +63,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Business not found." }, { status: 404 });
     }
 
-    const { getStoreAnalytics, rangeForDays } = await import("@/lib/analytics");
     const analytics = await getStoreAnalytics(business.id, rangeForDays(days));
     return NextResponse.json({ analytics });
   } catch (error) {
@@ -69,5 +73,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-import { prisma } from "@/lib/db";

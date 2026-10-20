@@ -24,6 +24,22 @@ const nextConfig = {
     ],
   },
   async headers() {
+    // Content-Security-Policy: the app loads Google Fonts at runtime and uses
+    // inline styles for the storefront themes, so `style-src 'unsafe-inline'`
+    // and a font-src are required. The default-src is restricted to self.
+    const contentSecurityPolicy = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' https://fonts.gstatic.com",
+      "connect-src 'self' https://api.paystack.co",
+      "frame-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ");
+
     return [
       {
         source: "/:path*",
@@ -31,6 +47,16 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // HSTS is only meaningful over HTTPS. On localhost it would
+          // prevent a developer from switching back to http, so it is gated.
+          ...(process.env.APP_URL?.startsWith("https://")
+            ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
+            : []),
+          { key: "Content-Security-Policy", value: contentSecurityPolicy },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+          },
         ],
       },
     ];

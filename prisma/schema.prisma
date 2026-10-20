@@ -26,6 +26,11 @@ model User {
   phone         String?
   role          String // USER | ADMIN
   suspended     Boolean  @default(false)
+  // Bumped whenever the password changes or the account is otherwise
+  // invalidated. The session cookie carries the value it had at sign-in, so
+  // a mismatch ends the session even though the token itself is still
+  // cryptographically valid.
+  sessionVersion Int     @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   business      Business?

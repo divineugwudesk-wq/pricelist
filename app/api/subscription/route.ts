@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, UnauthorizedError } from "@/lib/server-auth";
 import { prisma } from "@/lib/db";
 import { getActivePlan } from "@/lib/plans";
+import { isPaystackConfigured, isDevBillingAllowed } from "@/lib/paystack";
+import { isSubscriptionLive } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +24,12 @@ export async function GET() {
       subscription: subscription ?? null,
       plan,
       businessId: business?.id ?? null,
-      paystackConfigured: Boolean(process.env.PAYSTACK_SECRET_KEY),
+      paystackConfigured: isPaystackConfigured(),
+      // Whether a paid plan can actually be bought right now. The billing page
+      // uses this to disable the upgrade buttons instead of offering a
+      // checkout that cannot complete.
+      billingAvailable: isPaystackConfigured() || isDevBillingAllowed(),
+      devBilling: !isPaystackConfigured() && isDevBillingAllowed(),
       paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY ?? null,
     });
   } catch (error) {
@@ -37,7 +44,13 @@ export async function GET() {
   }
 }
 
-/** Cancel a subscription (sets status to CANCELLED until renewal). */
+/**
+ * Cancel a subscription.
+ *
+ * Cancelling does not remove access immediately: the period that has already
+ * been paid for runs to its end, and the subscription then expires. The
+ * status becomes CANCELLING so the dashboard and the access rules agree.
+ */
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -50,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     const sub = await prisma.subscription.findUnique({
       where: { userId: user.id },
-      select: { id: true, provider: true, plan: true },
+      select: { id: true, plan: true, status: true, renewalDate: true },
     });
     if (!sub) {
       return NextResponse.json({ error: "No active subscription." }, { status: 404 });
@@ -58,13 +71,22 @@ export async function POST(request: NextRequest) {
     if (sub.plan === "FREE") {
       return NextResponse.json({ error: "Free plan cannot be cancelled." }, { status: 400 });
     }
+    if (!isSubscriptionLive(sub)) {
+      return NextResponse.json(
+        { error: "This subscription has already ended." },
+        { status: 400 },
+      );
+    }
 
     await prisma.subscription.update({
       where: { id: sub.id },
-      data: { status: "CANCELLED" },
+      data: { status: "CANCELLING" },
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      accessUntil: sub.renewalDate?.toISOString() ?? null,
+    });
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       return NextResponse.json({ error: error.message }, { status: 401 });

@@ -5,10 +5,35 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.env
 .vercel
 .vscode/
 *.log
+
+# Environment files and local secrets.
+# Every variant is ignored, not just the exact name: a copy of .env or
+# .dev.vars saved as .env.bak / .env.saved / .dev.vars.old would otherwise be
+# picked up by `git add .` and publish live credentials.
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.bak
+*.backup
+*.saved
+*.old
+*.orig
+*.swp
+
+# Private key material. Public certificates (*.crt) stay tracked on purpose:
+# certs/prod-ca-2021.crt is the Supabase root CA and is needed to verify the
+# database certificate.
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+secrets/
 
 # Prisma
 prisma/*.sqlite
@@ -23,12 +48,10 @@ prisma/dev.db
 # Misc
 .DS_Store
 Thumbs.db
-*.backup
 temp.txt
 bash.exe
 *temprun_next_on_pages.bat
 *tmprun_next_on_pages.bat
 run_next_on_pages.bat
 tsconfig.tsbuildinfo
-.dev.vars
 build.exit.txt
