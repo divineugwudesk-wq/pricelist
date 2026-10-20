@@ -17,6 +17,8 @@ prisma/dev.db
 
 # OpenNext / Cloudflare build output
 .open-next/
+.wrangler/
+.wrangler-dryrun/
 
 # Misc
 .DS_Store
@@ -28,3 +30,5 @@ bash.exe
 *tmprun_next_on_pages.bat
 run_next_on_pages.bat
 tsconfig.tsbuildinfo
+.dev.vars
+build.exit.txt

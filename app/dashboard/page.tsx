@@ -12,7 +12,11 @@ export default async function DashboardOverview() {
   const business = await prisma.business.findUnique({
     where: { userId: user.id },
     include: {
-      orders: { orderBy: { createdAt: "desc" }, take: 5, include: { items: true } },
+      orders: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: { items: true },
+      },
       products: { orderBy: { createdAt: "desc" }, take: 4 },
       categories: true,
     },
@@ -24,9 +28,21 @@ export default async function DashboardOverview() {
 
   const plan = await getActivePlan(user.id);
   const planDef = PLANS[plan];
-  const productCount = await prisma.product.count({
-    where: { businessId: business.id },
-  });
+
+  // Real totals — the five most recent orders are not the whole history.
+  const [productCount, orderCount, revenue, newOrderCount, hiddenProductCount] =
+    await Promise.all([
+      prisma.product.count({ where: { businessId: business.id } }),
+      prisma.order.count({ where: { businessId: business.id } }),
+      prisma.order.aggregate({
+        where: { businessId: business.id, status: { not: "CANCELLED" } },
+        _sum: { total: true },
+      }),
+      prisma.order.count({ where: { businessId: business.id, status: "NEW" } }),
+      prisma.product.count({
+        where: { businessId: business.id, isAvailable: false },
+      }),
+    ]);
 
   return (
     <DashboardLayout
@@ -35,11 +51,23 @@ export default async function DashboardOverview() {
       storeSlug={business.slug}
     >
       <DashboardClient
-        business={business}
-        user={user}
+        business={{
+          name: business.name,
+          slug: business.slug,
+          description: business.description,
+          whatsappNumber: business.whatsappNumber,
+          logoUrl: business.logoUrl,
+          orders: business.orders,
+          products: business.products,
+          categories: business.categories,
+        }}
         plan={plan}
         planDef={planDef}
         productCount={productCount}
+        orderCount={orderCount}
+        revenue={revenue._sum.total ?? 0}
+        newOrderCount={newOrderCount}
+        hiddenProductCount={hiddenProductCount}
       />
     </DashboardLayout>
   );

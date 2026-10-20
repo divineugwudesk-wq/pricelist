@@ -26,7 +26,8 @@ import { formatNaira } from "@/lib/money";
 import { buildWhatsAppOrderUrl } from "@/lib/whatsapp";
 import type { StorefrontData } from "@/lib/storefront";
 import type { StoreProduct } from "./product-card";
-import { recordEvent } from "@/lib/analytics";
+import { initialsOf } from "./product-card";
+import { trackEvent } from "@/lib/analytics-client";
 
 export function CartDrawer({
   open,
@@ -49,7 +50,7 @@ export function CartDrawer({
         {lines.length === 0 ? (
           <div className="flex flex-col items-center px-6 py-12 text-center">
             <span
-              className="flex h-14 w-14 items-center justify-center rounded-2xl"
+              className="flex h-14 w-14 items-center justify-center rounded-xl"
               style={{ background: t.surfaceAlt, color: t.muted }}
             >
               <ShoppingBag className="h-6 w-6" />
@@ -60,7 +61,7 @@ export function CartDrawer({
             >
               Your order is empty
             </p>
-            <p className="mt-1 text-sm" style={{ color: t.textSecondary }}>
+            <p className="mt-1 text-body" style={{ color: t.textSecondary }}>
               Tap the + button on any product to start your order.
             </p>
             <Button variant="outline" size="sm" className="mt-5" onClick={onClose}>
@@ -80,16 +81,20 @@ export function CartDrawer({
                     {line.imageUrl ? (
                       <Image src={line.imageUrl} alt={line.name} fill sizes="56px" className="object-cover" />
                     ) : (
-                      <span className="flex h-full items-center justify-center text-lg" style={{ color: t.muted }}>
-                        ◆
+                      <span
+                        className="flex h-full items-center justify-center font-heading text-caption font-semibold"
+                        style={{ color: t.muted }}
+                        aria-hidden="true"
+                      >
+                        {initialsOf(line.name)}
                       </span>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium" style={{ color: t.text }}>
+                    <p className="truncate text-body font-medium" style={{ color: t.text }}>
                       {line.name}
                     </p>
-                    <p className="text-xs" style={{ color: t.textSecondary }}>
+                    <p className="text-caption" style={{ color: t.textSecondary }}>
                       {formatNaira(line.effectivePriceKobo)} each
                     </p>
                     <div className="mt-1.5 flex items-center gap-1">
@@ -101,7 +106,7 @@ export function CartDrawer({
                       >
                         <Minus className="h-3 w-3" />
                       </button>
-                      <span className="w-8 text-center text-sm font-semibold" style={{ color: t.text }}>
+                      <span className="w-8 text-center text-body font-semibold" style={{ color: t.text }}>
                         {line.quantity}
                       </span>
                       <button
@@ -115,12 +120,12 @@ export function CartDrawer({
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold" style={{ color: t.text }}>
+                    <p className="text-body font-bold" style={{ color: t.text }}>
                       {formatNaira(line.lineTotalKobo)}
                     </p>
                     <button
                       onClick={() => cart.remove(line.productId)}
-                      className="mt-1 rounded-md p-1 transition-colors hover:text-[#C94B4B]"
+                      className="mt-1 rounded-md p-1 transition-colors hover:text-danger"
                       style={{ color: t.muted }}
                       aria-label={`Remove ${line.name}`}
                     >
@@ -132,7 +137,7 @@ export function CartDrawer({
             </div>
 
             <div className="border-t px-5 py-4" style={{ borderColor: t.border }}>
-              <div className="space-y-1.5 text-sm">
+              <div className="space-y-1.5 text-body">
                 <div className="flex justify-between" style={{ color: t.textSecondary }}>
                   <span>Subtotal ({cart.count} items)</span>
                   <span className="font-medium" style={{ color: t.text }}>
@@ -158,10 +163,9 @@ export function CartDrawer({
                   Continue shopping
                 </Button>
                 <Button
-                  variant="gold"
+                  variant="whatsapp"
                   className="flex-1"
                   onClick={onCheckout}
-                  style={{ background: "#075E54" }}
                 >
                   <MessageCircle className="h-4 w-4" />
                   Review order
@@ -246,6 +250,8 @@ export function CheckoutModal({
       const url = buildWhatsAppOrderUrl(payload);
       if (!url) throw new Error("Invalid WhatsApp number");
 
+      trackEvent(store.business.id, "WHATSAPP_CLICK", { sessionId: getSessionId() });
+
       onOrderPlaced(url);
       cart.clear();
       onClose();
@@ -260,7 +266,7 @@ export function CheckoutModal({
     <Dialog open={open} onClose={onClose} title="Checkout" className="max-w-md">
       <form onSubmit={(e) => void placeOrder(e)} className="space-y-4 px-5 py-5">
         {lines.length === 0 ? (
-          <p className="py-6 text-center text-sm" style={{ color: t.textSecondary }}>
+          <p className="py-6 text-center text-body" style={{ color: t.textSecondary }}>
             Your order is empty.
           </p>
         ) : (
@@ -270,12 +276,12 @@ export function CheckoutModal({
               className="rounded-xl border p-3.5"
               style={{ borderColor: t.border, background: t.surface }}
             >
-              <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: t.muted }}>
+              <p className="text-micro font-semibold uppercase tracking-wider" style={{ color: t.muted }}>
                 Your order
               </p>
               <div className="mt-2 space-y-1.5">
                 {lines.map((l) => (
-                  <div key={l.productId} className="flex justify-between gap-3 text-[13px]">
+                  <div key={l.productId} className="flex justify-between gap-3 text-caption">
                     <span className="truncate" style={{ color: t.text }}>
                       {l.name} <span style={{ color: t.muted }}>×{l.quantity}</span>
                     </span>
@@ -285,7 +291,7 @@ export function CheckoutModal({
                   </div>
                 ))}
               </div>
-              <div className="mt-2 space-y-1 border-t pt-2 text-[13px]" style={{ borderColor: t.border }}>
+              <div className="mt-2 space-y-1 border-t pt-2 text-caption" style={{ borderColor: t.border }}>
                 <div className="flex justify-between" style={{ color: t.textSecondary }}>
                   <span>Subtotal</span>
                   <span>{formatNaira(cart.totals.subtotalKobo)}</span>
@@ -296,7 +302,7 @@ export function CheckoutModal({
                     <span>-{formatNaira(cart.totals.savingsKobo)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-[17px] font-bold" style={{ color: t.text }}>
+                <div className="flex justify-between text-lead font-bold" style={{ color: t.text }}>
                   <span>TOTAL</span>
                   <span>{formatNaira(cart.totals.totalKobo)}</span>
                 </div>
@@ -324,23 +330,22 @@ export function CheckoutModal({
             </Field>
 
             {error && (
-              <p className="rounded-xl bg-[#F9E9E9] px-3.5 py-2.5 text-[13px] text-[#C94B4B]" role="alert">
+              <p className="rounded-xl bg-danger-soft px-3.5 py-2.5 text-caption text-danger" role="alert">
                 {error}
               </p>
             )}
 
             <Button
               type="submit"
-              variant="gold"
+              variant="whatsapp"
               size="lg"
               className="w-full"
               loading={sending}
-              style={{ background: "#075E54" }}
             >
               <MessageCircle className="h-5 w-5" />
-              ORDER VIA WHATSAPP
+              Send order on WhatsApp
             </Button>
-            <p className="flex items-center justify-center gap-1.5 text-[11px]" style={{ color: t.muted }}>
+            <p className="flex items-center justify-center gap-1.5 text-micro" style={{ color: t.muted }}>
               <Lock className="h-3 w-3" />
               Opens WhatsApp with your order — no account needed.
             </p>
@@ -360,5 +365,3 @@ function getSessionId(): string {
   }
   return id;
 }
-
-void recordEvent;

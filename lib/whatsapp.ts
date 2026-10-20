@@ -87,7 +87,7 @@ export function buildWhatsAppOrderUrl(order: WhatsAppOrderPayload): string | nul
 
 /** Share-the-store message + URL used by business owners. */
 export function buildShareMessage(storeUrl: string, businessName: string): string {
-  return `Check out my products and prices on PRICELIST 👇\n${storeUrl}`;
+  return `Check out my products and prices on PRICELIST\n${storeUrl}`;
 }
 
 export function buildWhatsAppShareUrl(storeUrl: string, businessName: string): string {

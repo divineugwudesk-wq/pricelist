@@ -2,27 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { StatCard } from "@/components/ui/stat";
+import { Metrics } from "@/components/ui/metrics";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
-import { getStoreAnalytics } from "@/lib/analytics";
-import {
-  Eye,
-  MousePointerClick,
-  MessageCircle,
-  Users,
-  TrendingUp,
-  Flame,
-} from "lucide-react";
+import type { StoreAnalytics } from "@/lib/analytics";
+import { MessageCircle, Users, Flame } from "lucide-react";
 
 export default function AnalyticsPage() {
   const toast = useToast();
   const [days, setDays] = useState(30);
-  const [data, setData] = useState<Awaited<ReturnType<typeof getStoreAnalytics>> | null>(null);
+  const [data, setData] = useState<StoreAnalytics | null>(null);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -74,10 +66,10 @@ export default function AnalyticsPage() {
     <DashboardLayout userName={null}>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+          <h1 className="font-heading text-headline font-semibold text-ink">
             Analytics
           </h1>
-          <p className="mt-1 text-[13px] text-ink-muted">
+          <p className="mt-1 text-caption text-ink-muted">
             Understand how customers find and shop your store.
           </p>
         </div>
@@ -101,17 +93,18 @@ export default function AnalyticsPage() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard label="Store views" value={data.storeViews.toLocaleString()} icon={Eye} />
-            <StatCard label="Product views" value={data.productViews.toLocaleString()} icon={MousePointerClick} />
-            <StatCard label="WhatsApp order clicks" value={data.whatsappClicks.toLocaleString()} icon={MessageCircle} />
-            <StatCard
-              label="Checkout conversion"
-              value={conversion}
-              sub={`${data.uniqueSessions} unique visitors`}
-              icon={TrendingUp}
-            />
-          </div>
+          <Metrics
+            items={[
+              { label: "Store views", value: data.storeViews.toLocaleString() },
+              { label: "Product views", value: data.productViews.toLocaleString() },
+              { label: "WhatsApp clicks", value: data.whatsappClicks.toLocaleString() },
+              {
+                label: "Order click rate",
+                value: conversion,
+                sub: `${data.uniqueSessions} unique visitors`,
+              },
+            ]}
+          />
 
           <div className="mt-6 grid gap-6 lg:grid-cols-3">
             {/* Traffic chart */}
@@ -134,18 +127,18 @@ export default function AnalyticsPage() {
                         title={`${day.date}: ${day.views} views, ${day.clicks} order clicks`}
                       >
                         <div
-                          className="w-full rounded-t-md bg-navy-200 transition-all duration-200 group-hover:bg-navy-400"
+                          className="w-full rounded-t-md bg-navy-300 transition-colors group-hover:bg-navy-400"
                           style={{ height: `${Math.max(4, (day.views / maxDaily) * 100)}%` }}
                         />
                         <div
-                          className="w-full rounded-t-md bg-gold transition-all duration-200 group-hover:bg-gold-soft"
+                          className="w-full rounded-t-md bg-gold transition-colors group-hover:bg-gold-soft"
                           style={{ height: `${Math.max(day.clicks > 0 ? 4 : 0, (day.clicks / maxDaily) * 100)}%` }}
                         />
                       </div>
                     ))}
                   </div>
                 )}
-                <div className="mt-4 flex items-center gap-5 text-xs text-ink-muted">
+                <div className="mt-4 flex items-center gap-5 text-caption text-ink-muted">
                   <span className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-sm bg-navy-300" />
                     Store views
@@ -175,16 +168,20 @@ export default function AnalyticsPage() {
                       const max = data.productViewCounts[0]?.views ?? 1;
                       return (
                         <div key={p.productId}>
-                          <div className="mb-1 flex items-center justify-between text-[13px]">
-                            <span className="truncate font-medium text-ink">
-                              {i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : ""}
-                              {p.productName}
+                          <div className="mb-1 flex items-center justify-between gap-3 text-caption">
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-neutral-100 text-micro font-semibold text-ink-secondary">
+                                {i + 1}
+                              </span>
+                              <span className="truncate font-medium text-ink">
+                                {p.productName}
+                              </span>
                             </span>
-                            <span className="font-semibold text-navy-800">{p.views}</span>
+                            <span className="shrink-0 font-semibold text-ink">{p.views}</span>
                           </div>
-                          <div className="h-1.5 overflow-hidden rounded-full bg-navy-100">
+                          <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
                             <div
-                              className="h-full rounded-full bg-navy-800 transition-all duration-500"
+                              className="h-full rounded-full bg-navy-800 transition-all duration-300"
                               style={{ width: `${(p.views / max) * 100}%` }}
                             />
                           </div>
@@ -198,17 +195,17 @@ export default function AnalyticsPage() {
           </div>
 
           {data.whatsappClicks > 0 && (
-            <div className="mt-6 rounded-2xl border border-navy-100 bg-white p-5 shadow-soft">
+            <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-5 shadow-soft">
               <div className="flex items-start gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#E5F4EE] text-success">
-                  <MessageCircle className="h-4.5 w-4.5" />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-success-soft text-success">
+                  <MessageCircle className="h-4 w-4" />
                 </span>
                 <div>
-                  <p className="text-sm font-medium text-ink">
+                  <p className="text-body font-medium text-ink">
                     <span className="font-semibold">{data.whatsappClicks}</span>{" "}
                     customers started a WhatsApp order in the last {days} days
                   </p>
-                  <p className="mt-0.5 text-[13px] text-ink-muted">
+                  <p className="mt-0.5 text-caption text-ink-muted">
                     Every click sends a formatted order to your WhatsApp. Follow up
                     quickly — most customers expect a reply within the hour.
                   </p>

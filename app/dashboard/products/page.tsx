@@ -15,6 +15,7 @@ import {
   EyeOff,
   ArrowUpDown,
   X,
+  Check,
   CreditCard,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -25,6 +26,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { formatNaira } from "@/lib/money";
+import { PLANS } from "@/lib/plan-data";
 import type { Category } from "@prisma/client";
 
 interface ProductWithCategory {
@@ -217,10 +219,10 @@ export default function ProductsPage() {
     <DashboardLayout userName={null}>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+          <h1 className="font-heading text-headline font-semibold text-ink">
             Products
           </h1>
-          <p className="mt-1 text-[13px] text-ink-muted">
+          <p className="mt-1 text-caption text-ink-muted">
             Manage your catalog, prices and availability.
           </p>
         </div>
@@ -231,24 +233,24 @@ export default function ProductsPage() {
       </div>
 
       {/* Usage + limit */}
-      <div className="mb-6 rounded-2xl border border-navy-100 bg-white p-4 shadow-soft">
+      <div className="mb-6 rounded-xl border border-neutral-200 bg-white p-4 shadow-soft">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-50 text-navy-700">
               <Package className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-ink">
+              <p className="text-body font-semibold text-ink">
                 {usedCount} of {limit ?? "∞"} products used
               </p>
-              <p className="text-xs text-ink-muted">
+              <p className="text-caption text-ink-muted">
                 {plan === "FREE" ? "Free plan" : `${plan} plan`}
               </p>
             </div>
           </div>
           {limit !== null && (
             <div className="w-full sm:w-56">
-              <div className="h-1.5 overflow-hidden rounded-full bg-navy-100">
+              <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
                 <div
                   className={`h-full rounded-full ${
                     usedCount >= limit ? "bg-gold" : "bg-navy-800"
@@ -259,15 +261,15 @@ export default function ProductsPage() {
             </div>
           )}
           {limit !== null && usedCount >= limit && (
-            <Button variant="gold" size="sm" onClick={() => router.push("/dashboard/billing")}>
+            <Button variant="primary" size="sm" onClick={() => router.push("/dashboard/billing")}>
               <CreditCard className="h-3.5 w-3.5" />
               Upgrade plan
             </Button>
           )}
         </div>
         {limit !== null && usedCount >= limit && (
-          <p className="mt-3 rounded-xl bg-gold-faint/60 px-3 py-2 text-[13px] text-gold-deep">
-            You've reached your {limit}-product limit on the {plan} plan. Upgrade for more products,
+          <p className="mt-3 rounded-lg bg-warning-soft px-3 py-2 text-caption text-warning">
+              You&rsquo;ve reached your {limit}-product limit on the {plan} plan. Upgrade for more products,
             sale prices and analytics.
           </p>
         )}
@@ -312,15 +314,15 @@ export default function ProductsPage() {
 
       {/* Bulk bar */}
       {selected.size > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-navy-800 bg-navy-900 px-4 py-3 text-white animate-slide-down">
-          <span className="text-sm font-medium">{selected.size} selected</span>
-          <Button variant="light" size="sm" onClick={() => void bulkSet("isAvailable", true)}>
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-navy-800 bg-navy-900 px-4 py-3 text-white animate-slide-down">
+          <span className="text-body font-medium">{selected.size} selected</span>
+          <Button variant="onDark" size="sm" onClick={() => void bulkSet("isAvailable", true)}>
             Mark available
           </Button>
-          <Button variant="light" size="sm" onClick={() => void bulkSet("isAvailable", false)}>
+          <Button variant="onDark" size="sm" onClick={() => void bulkSet("isAvailable", false)}>
             Mark unavailable
           </Button>
-          <Button variant="light" size="sm" onClick={() => void bulkSet("isFeatured", true)}>
+          <Button variant="onDark" size="sm" onClick={() => void bulkSet("isFeatured", true)}>
             Feature
           </Button>
           <Button variant="danger" size="sm" onClick={() => void bulkDelete()}>
@@ -339,12 +341,12 @@ export default function ProductsPage() {
 
       {/* Product grid */}
       {products === null ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="space-y-3">
-              <div className="aspect-square animate-pulse rounded-2xl bg-navy-100" />
-              <div className="h-4 w-3/4 animate-pulse rounded bg-navy-100" />
-              <div className="h-3.5 w-1/2 animate-pulse rounded bg-navy-100" />
+              <div className="aspect-square animate-pulse rounded-xl bg-neutral-100" />
+              <div className="h-4 w-3/4 animate-pulse rounded bg-neutral-100" />
+              <div className="h-3.5 w-1/2 animate-pulse rounded bg-neutral-100" />
             </div>
           ))}
         </div>
@@ -357,41 +359,39 @@ export default function ProductsPage() {
               ? "Add your first product and start sharing your price list."
               : "Try a different search or filter."
           }
-          actionLabel={products.length === 0 ? "Add Product" : undefined}
+          actionLabel={products.length === 0 ? "Add product" : undefined}
           onAction={products.length === 0 ? () => router.push("/dashboard/products/new") : undefined}
         />
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((p) => (
             <div
               key={p.id}
-              className={`group relative rounded-2xl border bg-white shadow-soft transition-all duration-200 hover:shadow-lift ${
-                selected.has(p.id) ? "border-navy-700 ring-2 ring-navy-700/20" : "border-navy-100"
+              className={`group flex gap-3 rounded-xl border bg-white p-3 shadow-soft transition-colors sm:flex-col sm:gap-0 sm:p-0 ${
+                selected.has(p.id) ? "border-navy-700 ring-2 ring-navy-700/20" : "border-neutral-200"
               }`}
             >
-              <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-navy-50">
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-neutral-100 sm:h-auto sm:w-full sm:aspect-square sm:rounded-t-xl sm:rounded-l-none">
                 {p.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={p.imageUrl}
                     alt={p.name}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="h-full w-full object-cover"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center">
-                    <Package className="h-10 w-10 text-navy-200" />
+                    <Package className="h-8 w-8 text-neutral-300" />
                   </div>
                 )}
-                <div className="absolute left-2.5 top-2.5 flex gap-1.5">
-                  {p.isFeatured && (
-                    <Badge tone="gold" className="shadow-sm">Featured</Badge>
-                  )}
+                <div className="absolute left-2 top-2 flex gap-1.5">
+                  {p.isFeatured && <Badge tone="gold">Featured</Badge>}
                   {p.salePrice && p.salePrice > 0 && p.salePrice < p.price && (
-                    <Badge tone="danger" className="shadow-sm">Sale</Badge>
+                    <Badge tone="danger">Sale</Badge>
                   )}
                 </div>
-                <label className="absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-lg bg-white/95 shadow-sm">
+                <label className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-md bg-white/95 shadow-sm">
                   <input
                     type="checkbox"
                     className="h-4 w-4 accent-navy-900"
@@ -401,29 +401,29 @@ export default function ProductsPage() {
                   />
                 </label>
               </div>
-              <div className="p-3.5">
-                <p className="truncate text-sm font-medium text-ink">{p.name}</p>
-                <p className="mt-0.5 truncate text-xs text-ink-muted">
+              <div className="min-w-0 flex-1 sm:p-3.5">
+                <p className="truncate text-body font-medium text-ink">{p.name}</p>
+                <p className="mt-0.5 truncate text-caption text-ink-muted">
                   {p.category?.name ?? "Uncategorized"}
                   {p.sku ? ` · ${p.sku}` : ""}
                 </p>
                 <div className="mt-1.5 flex items-baseline gap-2">
-                  <span className="text-sm font-semibold text-navy-900">
-                    {formatNaira(p.price)}
+                  <span className="text-body font-semibold text-ink">
+                    {formatNaira(p.salePrice && p.salePrice > 0 && p.salePrice < p.price ? p.salePrice : p.price)}
                   </span>
                   {p.salePrice && p.salePrice > 0 && p.salePrice < p.price && (
-                    <span className="text-xs text-ink-muted line-through">
+                    <span className="text-caption text-ink-muted line-through">
                       {formatNaira(p.price)}
                     </span>
                   )}
                 </div>
-                <div className="mt-3 flex items-center gap-1">
+                <div className="mt-3 flex items-center gap-1.5">
                   <button
                     onClick={() => void toggleField(p.id, "isAvailable", !p.isAvailable)}
-                    className={`flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    className={`flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md text-caption font-medium transition-colors ${
                       p.isAvailable
-                        ? "bg-[#E5F4EE] text-success hover:bg-[#D6EDE3]"
-                        : "bg-[#F9E9E9] text-danger hover:bg-[#F4DCDC]"
+                        ? "bg-success-soft text-success"
+                        : "bg-danger-soft text-danger"
                     }`}
                     title={p.isAvailable ? "Available — tap to hide" : "Unavailable — tap to show"}
                   >
@@ -432,12 +432,12 @@ export default function ProductsPage() {
                   </button>
                   <button
                     onClick={() => void toggleField(p.id, "isFeatured", !p.isFeatured)}
-                    className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-md transition-colors ${
                       p.isFeatured
                         ? "bg-gold-faint text-gold-deep"
-                        : "bg-navy-50 text-ink-muted hover:bg-navy-100"
+                        : "bg-neutral-100 text-ink-muted hover:bg-neutral-200"
                     }`}
-                    title={p.isFeatured ? "Unfeature" : "Feature"}
+                    title={p.isFeatured ? "Remove from featured" : "Mark as featured"}
                     aria-label={p.isFeatured ? `Unfeature ${p.name}` : `Feature ${p.name}`}
                   >
                     {p.isFeatured ? <Star className="h-3.5 w-3.5 fill-current" /> : <StarOff className="h-3.5 w-3.5" />}
@@ -462,28 +462,24 @@ export default function ProductsPage() {
         title="You've reached your plan limit"
       >
         <div className="px-6 py-6">
-          <p className="text-sm text-ink-secondary">{limitDialog.message}</p>
-          <div className="mt-4 rounded-2xl bg-navy-50 p-4">
-            <p className="text-[13px] font-medium text-ink">
-              {limitDialog.upgradeTo === "PRO" ? "Pro" : "Starter"} gives you more:
+          <p className="text-body text-ink-secondary">{limitDialog.message}</p>
+          <div className="mt-4 rounded-lg bg-neutral-50 p-4">
+            <p className="text-caption font-medium text-ink">
+              {limitDialog.upgradeTo === "PRO" ? "Pro gives you more:" : "Starter gives you more:"}
             </p>
-            <ul className="mt-2 space-y-1.5 text-[13px] text-ink-secondary">
-              <li className="flex items-center gap-2">
-                <Star className="h-3.5 w-3.5 text-gold-deep" />
-                {limitDialog.upgradeTo === "PRO" ? "Unlimited products" : "Up to 50 products"}
-              </li>
-              <li className="flex items-center gap-2">
-                <Star className="h-3.5 w-3.5 text-gold-deep" />
-                Product search & featured products
-              </li>
-              <li className="flex items-center gap-2">
-                <Star className="h-3.5 w-3.5 text-gold-deep" />
-                Analytics & order history
-              </li>
+            <ul className="mt-2 space-y-1.5 text-caption text-ink-secondary">
+              {(PLANS[limitDialog.upgradeTo as "STARTER" | "PRO"]?.features ?? []).map(
+                (feature) => (
+                  <li key={feature} className="flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 shrink-0 text-success" />
+                    {feature}
+                  </li>
+                ),
+              )}
             </ul>
           </div>
           <Button
-            variant="gold"
+            variant="primary"
             className="mt-5 w-full"
             size="lg"
             onClick={() => {
@@ -515,11 +511,11 @@ function ProductMenu({
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-50 text-ink-muted transition-colors hover:bg-navy-100"
+        className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-50 text-ink-muted transition-colors hover:bg-neutral-100"
         aria-label="Product actions"
       >
         {deleting ? (
-          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-navy-300 border-t-navy-800" />
+          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-neutral-300 border-t-navy-800" />
         ) : (
           <MoreHorizontal className="h-4 w-4" />
         )}
@@ -527,24 +523,24 @@ function ProductMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-xl border border-navy-100 bg-white shadow-lift animate-scale-in">
+          <div className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lift animate-scale-in">
             <button
               onClick={() => { setOpen(false); onEdit(); }}
-              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[13px] text-ink transition-colors hover:bg-navy-50"
+              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-caption text-ink transition-colors hover:bg-neutral-50"
             >
               <Package className="h-3.5 w-3.5 text-ink-muted" />
               Edit product
             </button>
             <button
               onClick={() => { setOpen(false); onDuplicate(); }}
-              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[13px] text-ink transition-colors hover:bg-navy-50"
+              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-caption text-ink transition-colors hover:bg-neutral-50"
             >
               <Copy className="h-3.5 w-3.5 text-ink-muted" />
               Duplicate
             </button>
             <button
               onClick={() => { setOpen(false); onDelete(); }}
-              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-[13px] text-danger transition-colors hover:bg-[#F9E9E9]"
+              className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-caption text-danger transition-colors hover:bg-danger-soft"
             >
               <Trash2 className="h-3.5 w-3.5" />
               Delete

@@ -1,9 +1,12 @@
 "use client";
 
-// Storefront header — the premium first impression of every store.
+// Storefront header — the first impression of every store.
+import { useState } from "react";
 import Image from "next/image";
 import { MapPin, MessageCircle, Search, ShoppingBag, Share2, Menu, X } from "lucide-react";
 import type { StorefrontData } from "@/lib/storefront";
+import { normalizeWhatsAppNumber, buildWhatsAppShareUrl } from "@/lib/whatsapp";
+import { Button } from "@/components/ui/button";
 
 export function StorefrontHeader({
   store,
@@ -32,7 +35,7 @@ export function StorefrontHeader({
     >
       <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3.5 sm:px-6">
         {b.logoUrl ? (
-          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-2xl bg-navy-50">
+          <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-neutral-50">
             <Image
               src={b.logoUrl}
               alt={`${b.name} logo`}
@@ -44,7 +47,7 @@ export function StorefrontHeader({
           </div>
         ) : (
           <span
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-heading text-lg font-bold"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-heading text-lg font-bold"
             style={{ background: store.theme.tokens.primary, color: store.theme.tokens.onPrimary }}
           >
             {b.name.slice(0, 2).toUpperCase()}
@@ -52,14 +55,14 @@ export function StorefrontHeader({
         )}
         <div className="min-w-0 flex-1">
           <h1
-            className={`truncate text-[17px] font-bold leading-tight ${
+            className={`truncate text-lead font-bold leading-tight ${
               store.theme.fonts.heading === "serif" ? "font-serif" : "font-heading"
             }`}
             style={{ color: store.theme.tokens.text }}
           >
             {b.name}
           </h1>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px]" style={{ color: store.theme.tokens.textSecondary }}>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-micro" style={{ color: store.theme.tokens.textSecondary }}>
             <span>{b.category}</span>
             {b.address && (
               <span className="flex items-center gap-1">
@@ -72,7 +75,7 @@ export function StorefrontHeader({
               style={{ color: store.isOpen ? "#16845B" : "#C94B4B" }}
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${store.isOpen ? "animate-pulse" : ""}`}
+                className="h-1.5 w-1.5 rounded-full"
                 style={{ background: store.isOpen ? "#16845B" : "#C94B4B" }}
               />
               {store.isOpen ? "Open" : "Closed"}
@@ -113,7 +116,7 @@ export function StorefrontHeader({
             <ShoppingBag className="h-[18px] w-[18px]" />
             {cartCount > 0 && (
               <span
-                className="absolute -right-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold"
+                className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-micro font-semibold"
                 style={{ background: store.theme.tokens.accent, color: store.theme.tokens.onAccent }}
               >
                 {cartCount}
@@ -141,21 +144,21 @@ export function StorefrontHeader({
           <div className="mb-3 flex gap-2">
             <button
               onClick={() => { setMenuOpen(false); onSearch(); }}
-              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-[13px] font-medium"
+              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-caption font-medium"
               style={{ background: store.theme.tokens.surface, color: store.theme.tokens.text }}
             >
               <Search className="h-4 w-4" /> Search
             </button>
             <button
               onClick={() => { setMenuOpen(false); onShare(); }}
-              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-[13px] font-medium"
+              className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-caption font-medium"
               style={{ background: store.theme.tokens.surface, color: store.theme.tokens.text }}
             >
               <Share2 className="h-4 w-4" /> Share
             </button>
             <button
               onClick={() => { setMenuOpen(false); onCart(); }}
-              className="relative flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-[13px] font-medium"
+              className="relative flex h-10 flex-1 items-center justify-center gap-2 rounded-xl text-caption font-medium"
               style={{ background: store.theme.tokens.surface, color: store.theme.tokens.text }}
             >
               <ShoppingBag className="h-4 w-4" /> Cart ({cartCount})
@@ -167,10 +170,6 @@ export function StorefrontHeader({
     </header>
   );
 }
-
-import { useState } from "react";
-import { normalizeWhatsAppNumber, buildWhatsAppShareUrl } from "@/lib/whatsapp";
-import { Button } from "@/components/ui/button";
 
 export function WhatsAppButton({
   store,
@@ -193,10 +192,9 @@ export function WhatsAppButton({
       aria-label="Chat on WhatsApp"
     >
       <Button
-        variant="gold"
+        variant="whatsapp"
         size={compact ? "sm" : "md"}
         className="gap-1.5"
-        style={{ background: "#075E54" }}
       >
         <MessageCircle className="h-4 w-4" />
         {compact ? "Chat" : "Chat with us"}

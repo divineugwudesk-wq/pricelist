@@ -4,10 +4,21 @@ compatibility_date = "2026-10-16"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 
 [vars]
-APP_URL = "https://pricelistng.workers.dev"
-AUTH_SECRET = "PLACEHOLDER_AUTH_SECRET"
-DATABASE_URL = "postgresql://postgres:PLACEHOLDER@db.YOUR-PROJECT-ID.supabase.co:6543/postgres?pgbouncer=true"
-NEXTAUTH_URL = "https://pricelistng.workers.dev"
+# The public origin of this Worker. The custom domain is
+# pricelist.pricelistng.workers.dev (pricelistng.workers.dev does not resolve).
+APP_URL = "https://pricelist.pricelistng.workers.dev"
+NEXTAUTH_URL = "https://pricelist.pricelistng.workers.dev"
+
+# DATABASE_URL and AUTH_SECRET are intentionally NOT defined here. They must
+# be set as encrypted secrets on the Worker (Cloudflare dashboard → Settings →
+# Variables and Secrets), otherwise the API routes fail at runtime.
+#
+#   wrangler secret put DATABASE_URL
+#   wrangler secret put AUTH_SECRET
+#
+# DATABASE_URL must be the Supabase *session pooler* URL, because the direct
+# host (db.<ref>.supabase.co) only has an IPv6 record and Workers cannot
+# reach it.
 
 [assets]
 directory = ".open-next/assets"

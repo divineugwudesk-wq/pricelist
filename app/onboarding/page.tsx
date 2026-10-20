@@ -8,7 +8,6 @@ import {
   Wand2,
   Plus,
   Trash2,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
   Check,
@@ -227,10 +226,10 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <header className="border-b border-navy-100 bg-white">
+      <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
           <Logo size="md" />
-          <Link href="/dashboard" className="text-sm font-medium text-ink-secondary hover:text-navy-900">
+          <Link href="/dashboard" className="text-body font-medium text-ink-secondary hover:text-navy-900">
             Skip for now
           </Link>
         </div>
@@ -242,25 +241,25 @@ export default function OnboardingPage() {
           {STEP_LABELS.map((label, i) => (
             <div key={label} className="flex flex-1 items-center gap-2">
               <div
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-colors ${
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-micro font-semibold transition-colors ${
                   i < step
                     ? "bg-success text-white"
                     : i === step
                       ? "bg-navy-900 text-white"
-                      : "bg-navy-100 text-ink-muted"
+                      : "bg-neutral-100 text-ink-muted"
                 }`}
               >
                 {i < step ? <Check className="h-3.5 w-3.5" /> : `0${i + 1}`}
               </div>
               <span
-                className={`hidden text-[13px] font-medium sm:block ${
+                className={`hidden text-caption font-medium sm:block ${
                   i === step ? "text-ink" : "text-ink-muted"
                 }`}
               >
                 {label}
               </span>
               {i < STEP_LABELS.length - 1 && (
-                <div className={`h-px flex-1 ${i < step ? "bg-success" : "bg-navy-100"}`} />
+                <div className={`h-px flex-1 ${i < step ? "bg-success" : "bg-neutral-100"}`} />
               )}
             </div>
           ))}
@@ -268,14 +267,14 @@ export default function OnboardingPage() {
 
         {step === 0 && (
           <section className="animate-fade-in">
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-navy-900">
+            <h1 className="font-heading text-display font-semibold text-ink">
               Tell us about your business
             </h1>
             <p className="mt-2 text-ink-secondary">
               This creates your public storefront at{" "}
               <span className="font-medium text-navy-800">pricelist.ng/your-business</span>
             </p>
-            <div className="mt-8 grid gap-5 rounded-3xl border border-navy-100 bg-white p-6 shadow-soft sm:p-8 sm:grid-cols-2">
+            <div className="mt-8 grid gap-5 rounded-xl border border-neutral-200 bg-white p-6 shadow-soft sm:p-8 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <Field label="Business name" htmlFor="biz-name" error={errors.name}>
                   <Input
@@ -356,31 +355,32 @@ export default function OnboardingPage() {
 
         {step === 1 && (
           <section className="animate-fade-in">
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-navy-900">
-              Make it yours
+            <h1 className="font-heading text-display font-semibold text-ink">
+              Add your logo
             </h1>
             <p className="mt-2 text-ink-secondary">
-              Upload your logo or let us create one. You can change everything later.
+              Upload the logo you already have, or let us draft one. You can change it later.
             </p>
 
-            <div className="mt-8 rounded-3xl border border-navy-100 bg-white p-6 shadow-soft sm:p-8">
-              <p className="text-[13px] font-medium text-ink-secondary">Logo</p>
+            <div className="mt-8 rounded-xl border border-neutral-200 bg-white p-6 shadow-soft sm:p-8">
+              <p className="text-caption font-medium text-ink-secondary">Logo</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className={`flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-6 transition-colors ${
+                  className={`flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 transition-colors ${
                     logo.mode === "upload"
                       ? "border-gold bg-gold-faint/40"
-                      : "border-navy-200 hover:border-navy-400 hover:bg-navy-50/50"
+                      : "border-neutral-300 hover:border-navy-400 hover:bg-neutral-50/50"
                   }`}
                 >
                   {logo.mode === "upload" && logo.dataUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- local data URL preview
                     <img src={logo.dataUrl} alt="Logo preview" className="max-h-24 max-w-40 object-contain" />
                   ) : (
                     <>
                       <Upload className="h-6 w-6 text-navy-500" />
-                      <span className="text-sm font-medium text-ink">Upload Logo</span>
-                      <span className="text-xs text-ink-muted">PNG, JPG or WEBP · max 5 MB</span>
+                      <span className="text-body font-medium text-ink">Upload a logo</span>
+                      <span className="text-caption text-ink-muted">PNG, JPG or WEBP · max 5 MB</span>
                     </>
                   )}
                 </button>
@@ -397,15 +397,15 @@ export default function OnboardingPage() {
                 />
 
                 <div
-                  className={`rounded-2xl border-2 p-5 transition-colors ${
+                  className={`rounded-xl border-2 p-5 transition-colors ${
                     logo.mode === "generate"
                       ? "border-gold bg-gold-faint/40"
-                      : "border-navy-200"
+                      : "border-neutral-300"
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <Wand2 className="h-5 w-5 text-gold-deep" />
-                    <span className="text-sm font-medium text-ink">Create My Logo</span>
+                    <span className="text-body font-medium text-ink">Draft a logo</span>
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     <Field label="Style" htmlFor="logo-style">
@@ -428,7 +428,7 @@ export default function OnboardingPage() {
                           type="color"
                           value={logoForm.color}
                           onChange={(e) => setLogoForm({ ...logoForm, color: e.target.value })}
-                          className="h-11 w-full cursor-pointer rounded-xl border border-navy-200 bg-white px-1"
+                          className="h-11 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white px-1"
                           aria-label="Logo color"
                         />
                       </div>
@@ -441,20 +441,20 @@ export default function OnboardingPage() {
                     loading={logo.generating}
                     onClick={() => void generateLogos()}
                   >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Generate concepts
+                    Draft a concept
                   </Button>
                 </div>
               </div>
 
               {logoConcepts.length > 0 && (
                 <div className="mt-5">
-                  <p className="text-[13px] font-medium text-ink-secondary">Your logo concept</p>
+                  <p className="text-caption font-medium text-ink-secondary">Your logo concept</p>
                   <div className="mt-3 flex items-center gap-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- local data URL preview */}
                     <img
                       src={logoConcepts[0]}
                       alt="Generated logo concept"
-                      className="h-24 w-24 rounded-2xl border border-navy-100 shadow-soft"
+                      className="h-24 w-24 rounded-xl border border-neutral-200 shadow-soft"
                     />
                     <div className="flex gap-2">
                       <Button
@@ -481,8 +481,8 @@ export default function OnboardingPage() {
               )}
 
               <div className="mt-8">
-                <p className="text-[13px] font-medium text-ink-secondary">Theme</p>
-                <p className="mt-0.5 text-xs text-ink-muted">
+                <p className="text-caption font-medium text-ink-secondary">Theme</p>
+                <p className="mt-0.5 text-caption text-ink-muted">
                   The Free plan includes Classic Navy. Pro unlocks Luxury, Midnight, Fashion and more.
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -490,15 +490,15 @@ export default function OnboardingPage() {
                     <button
                       key={t.id}
                       onClick={() => setTheme(t.id)}
-                      className={`rounded-2xl border-2 p-3 text-left transition-colors ${
-                        theme === t.id ? "border-navy-800" : "border-navy-100 hover:border-navy-300"
+                      className={`rounded-xl border-2 p-3 text-left transition-colors ${
+                        theme === t.id ? "border-navy-800" : "border-neutral-200 hover:border-neutral-300"
                       }`}
                     >
                       <div className="flex h-10 overflow-hidden rounded-lg">
                         <span className="flex-1" style={{ background: t.swatch[0] }} />
                         <span className="flex-1" style={{ background: t.swatch[1] }} />
                       </div>
-                      <p className="mt-2 text-xs font-medium text-ink">{t.name}</p>
+                      <p className="mt-2 text-caption font-medium text-ink">{t.name}</p>
                     </button>
                   ))}
                   {[
@@ -508,16 +508,16 @@ export default function OnboardingPage() {
                   ].map((t) => (
                     <div
                       key={t.id}
-                      className="relative rounded-2xl border border-navy-100 p-3 opacity-70"
+                      className="relative rounded-xl border border-neutral-200 p-3 opacity-70"
                       title="Pro feature"
                     >
                       <div className="flex h-10 overflow-hidden rounded-lg">
                         <span className="flex-1" style={{ background: t.swatch[0] }} />
                         <span className="flex-1" style={{ background: t.swatch[1] }} />
                       </div>
-                      <p className="mt-2 flex items-center gap-1 text-xs font-medium text-ink">
+                      <p className="mt-2 flex items-center gap-1 text-caption font-medium text-ink">
                         {t.name}
-                        <span className="rounded bg-gold-faint px-1.5 py-0.5 text-[9px] font-semibold text-gold-deep">
+                        <span className="rounded bg-gold-faint px-1.5 py-0.5 text-micro font-semibold text-gold-deep">
                           PRO
                         </span>
                       </p>
@@ -531,7 +531,7 @@ export default function OnboardingPage() {
 
         {step === 2 && (
           <section className="animate-fade-in">
-            <h1 className="font-heading text-3xl font-bold tracking-tight text-navy-900">
+            <h1 className="font-heading text-display font-semibold text-ink">
               Add your first products
             </h1>
             <p className="mt-2 text-ink-secondary">
@@ -541,14 +541,14 @@ export default function OnboardingPage() {
               {products.map((p, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl border border-navy-100 bg-white p-5 shadow-soft"
+                  className="rounded-xl border border-neutral-200 bg-white p-5 shadow-soft"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-semibold text-ink-muted">
+                    <span className="text-caption font-semibold text-ink-muted">
                       Product {i + 1}
                     </span>
                     <div className="flex items-center gap-3">
-                      <label className="flex items-center gap-2 text-[13px] text-ink-secondary">
+                      <label className="flex items-center gap-2 text-caption text-ink-secondary">
                         <Switch
                           small
                           checked={p.available}
@@ -564,7 +564,7 @@ export default function OnboardingPage() {
                       {products.length > 1 && (
                         <button
                           onClick={() => setProducts((all) => all.filter((_, xi) => xi !== i))}
-                          className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-[#F9E9E9] hover:text-danger"
+                          className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-danger-soft hover:text-danger"
                           aria-label="Remove product"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -629,7 +629,7 @@ export default function OnboardingPage() {
                 Add another product
               </Button>
             )}
-            <p className="mt-4 text-[13px] text-ink-muted">
+            <p className="mt-4 text-caption text-ink-muted">
               {products.filter((p) => p.name.trim()).length} of 5 products used
             </p>
           </section>
@@ -637,42 +637,42 @@ export default function OnboardingPage() {
 
         {step === 3 && (
           <section className="animate-fade-in text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-navy-900 text-gold">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-navy-900 text-gold">
               <Rocket className="h-7 w-7" />
             </div>
-            <h1 className="mt-6 font-heading text-3xl font-bold tracking-tight text-navy-900 sm:text-4xl">
+            <h1 className="mt-6 font-heading text-display font-semibold text-ink sm:text-4xl">
               Your store is ready
             </h1>
             <p className="mx-auto mt-3 max-w-md text-ink-secondary">
               Share your link anywhere — WhatsApp, Instagram, flyers, business
               cards — and start receiving orders.
             </p>
-            <div className="mx-auto mt-8 max-w-md rounded-3xl border border-navy-100 bg-white p-6 shadow-soft">
-              <p className="text-[13px] font-medium text-ink-muted">Your storefront</p>
+            <div className="mx-auto mt-8 max-w-md rounded-xl border border-neutral-200 bg-white p-6 shadow-soft">
+              <p className="text-caption font-medium text-ink-muted">Your storefront</p>
               <p className="mt-1 break-all font-heading text-xl font-bold text-navy-900">
                 {process.env.NEXT_PUBLIC_APP_URL?.replace(/^https?:\/\//, "") ?? "localhost:3000"}/{storeSlug ?? "your-store"}
               </p>
               <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                 <Button
-                  variant="gold"
+                  variant="primary"
                   className="flex-1"
                   onClick={() => {
                     if (storeSlug) window.open(`/${storeSlug}`, "_blank");
                   }}
                   disabled={!storeSlug}
                 >
-                  View My Store
+                  Open my store
                 </Button>
                 <Button
                   variant="outline"
                   className="flex-1"
                   onClick={() => router.push("/dashboard")}
                 >
-                  Go to Dashboard
+                  Go to dashboard
                 </Button>
               </div>
             </div>
-            <p className="mt-5 text-xs text-ink-muted">
+            <p className="mt-5 text-caption text-ink-muted">
               Tip: share your link in your WhatsApp status and bio to get your
               first orders today.
             </p>

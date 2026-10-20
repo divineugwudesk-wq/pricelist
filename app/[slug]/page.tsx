@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   try {
     const store = await getStorefront(slug);
-    const title = `${store.business.name} â€” ${categoryLabel(store.business.category)} | PRICELIST`;
+    const title = `${store.business.name} — ${categoryLabel(store.business.category)} | PRICELIST`;
     return {
       title,
       description:

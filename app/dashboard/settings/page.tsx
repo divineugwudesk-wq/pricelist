@@ -199,8 +199,8 @@ export default function SettingsPage() {
     return (
       <DashboardLayout userName={null}>
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-40 rounded-lg bg-navy-100" />
-          <div className="h-72 rounded-2xl bg-navy-100" />
+          <div className="h-8 w-40 rounded-lg bg-neutral-100" />
+          <div className="h-72 rounded-xl bg-neutral-100" />
         </div>
       </DashboardLayout>
     );
@@ -209,10 +209,10 @@ export default function SettingsPage() {
   return (
     <DashboardLayout userName={null} storeSlug={business.slug}>
       <div className="mb-7">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+        <h1 className="font-heading text-headline font-semibold text-ink">
           Settings
         </h1>
-        <p className="mt-1 text-[13px] text-ink-muted">
+        <p className="mt-1 text-caption text-ink-muted">
           Business profile, contact details and opening hours.
         </p>
       </div>
@@ -230,20 +230,20 @@ export default function SettingsPage() {
                     <img
                       src={business.logoUrl}
                       alt={business.name}
-                      className="h-20 w-20 rounded-2xl object-cover shadow-soft"
+                      className="h-20 w-20 rounded-xl object-cover shadow-soft"
                     />
                   ) : (
-                    <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-navy-900 font-heading text-2xl font-bold text-gold">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-navy-900 font-heading text-2xl font-bold text-gold">
                       {business.name.slice(0, 2).toUpperCase()}
                     </div>
                   )}
                   <button
                     onClick={() => document.getElementById("settings-logo")?.click()}
-                    className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-xl border border-navy-100 bg-white text-navy-700 shadow-soft transition-colors hover:bg-navy-50"
+                    className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-200 bg-white text-navy-700 shadow-soft transition-colors hover:bg-neutral-50"
                     aria-label="Change logo"
                   >
                     {logoUploading ? (
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-navy-200 border-t-navy-800" />
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-navy-800" />
                     ) : (
                       <Upload className="h-3.5 w-3.5" />
                     )}
@@ -262,10 +262,10 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="font-heading text-lg font-semibold text-ink">{business.name}</p>
-                  <p className="text-sm text-ink-muted">
+                  <p className="text-body text-ink-muted">
                     pricelist.ng/<span className="font-medium text-navy-800">{business.slug}</span>
                   </p>
-                  <p className="mt-1 text-xs text-ink-muted">
+                  <p className="mt-1 text-caption text-ink-muted">
                     PNG, JPG or WEBP · max 5 MB
                   </p>
                 </div>
@@ -411,7 +411,7 @@ export default function SettingsPage() {
                   }`}
                 >
                   <Clock className="h-4 w-4 shrink-0 text-ink-muted" />
-                  <span className="w-24 text-sm font-medium text-ink">{DAY_NAMES[h.day]}</span>
+                  <span className="w-24 text-body font-medium text-ink">{DAY_NAMES[h.day]}</span>
                   <Switch
                     small
                     checked={h.isOpen}
@@ -423,7 +423,7 @@ export default function SettingsPage() {
                     label={`${DAY_NAMES[h.day]} open`}
                   />
                   {h.isOpen && (
-                    <div className="flex items-center gap-1.5 text-[13px] text-ink-secondary">
+                    <div className="flex items-center gap-1.5 text-caption text-ink-secondary">
                       <input
                         type="time"
                         value={h.opensAt}
@@ -432,7 +432,7 @@ export default function SettingsPage() {
                             all.map((x) => (x.day === h.day ? { ...x, opensAt: e.target.value } : x)),
                           )
                         }
-                        className="rounded-lg border border-navy-200 bg-white px-1.5 py-1 text-[12px] text-ink"
+                        className="rounded-lg border border-neutral-300 bg-white px-1.5 py-1 text-caption text-ink"
                         aria-label={`${DAY_NAMES[h.day]} opening time`}
                       />
                       <span className="text-ink-muted">—</span>
@@ -444,13 +444,13 @@ export default function SettingsPage() {
                             all.map((x) => (x.day === h.day ? { ...x, closesAt: e.target.value } : x)),
                           )
                         }
-                        className="rounded-lg border border-navy-200 bg-white px-1.5 py-1 text-[12px] text-ink"
+                        className="rounded-lg border border-neutral-300 bg-white px-1.5 py-1 text-caption text-ink"
                         aria-label={`${DAY_NAMES[h.day]} closing time`}
                       />
                     </div>
                   )}
-                  {h.isOpen && <span className="ml-auto text-xs text-ink-muted">Open</span>}
-                  {!h.isOpen && <span className="ml-auto text-xs text-danger">Closed</span>}
+                  {h.isOpen && <span className="ml-auto text-caption text-ink-muted">Open</span>}
+                  {!h.isOpen && <span className="ml-auto text-caption text-danger">Closed</span>}
                 </div>
               ))}
             </div>
@@ -463,9 +463,9 @@ export default function SettingsPage() {
               <Check className="h-4 w-4" />
               Save hours
             </Button>
-            <p className="mt-3 flex items-start gap-1.5 text-xs leading-relaxed text-ink-muted">
+            <p className="mt-3 flex items-start gap-1.5 text-caption leading-relaxed text-ink-muted">
               <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              Customers see a live "Open / Closed" indicator on your storefront,
+              Customers see a live &quot;Open / Closed&quot; indicator on your storefront,
               calculated in your timezone.
             </p>
           </CardBody>

@@ -115,8 +115,8 @@ export default function RegisterPage() {
         <Button type="submit" loading={loading} className="w-full" size="lg">
           Create my free account
         </Button>
-        <p className="text-center text-xs text-ink-muted">
-          By continuing you agree to PRICELIST's terms. Free plan includes 5 products.
+        <p className="text-center text-caption text-ink-muted">
+          By continuing you agree to PRICELIST&rsquo;s terms. Free plan includes 5 products.
         </p>
       </form>
     </AuthShell>

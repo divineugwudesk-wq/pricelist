@@ -55,7 +55,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(92vw,380px)] flex-col gap-2"
+        className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(92vw,360px)] flex-col gap-2"
         aria-live="polite"
       >
         {toasts.map((t) => {
@@ -65,35 +65,35 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={t.id}
               className={cn(
-                "pointer-events-auto flex items-start gap-3 rounded-xl border bg-white px-4 py-3 shadow-lift animate-slide-up",
-                t.tone === "success" && "border-[#BFE3D2]",
-                t.tone === "error" && "border-[#F0CFD0]",
-                t.tone === "info" && "border-navy-100",
+                "pointer-events-auto flex items-start gap-2.5 rounded-lg border bg-white px-3.5 py-3 shadow-lift animate-slide-up",
+                t.tone === "success" && "border-success-soft",
+                t.tone === "error" && "border-danger-soft",
+                t.tone === "info" && "border-neutral-200",
               )}
               role="status"
             >
               <Icon
                 className={cn(
-                  "mt-0.5 h-4.5 w-4.5 shrink-0",
+                  "mt-0.5 h-4 w-4 shrink-0",
                   t.tone === "success" && "text-success",
                   t.tone === "error" && "text-danger",
                   t.tone === "info" && "text-navy-600",
                 )}
               />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-ink">{t.title}</p>
+                <p className="text-body font-medium text-ink">{t.title}</p>
                 {t.description && (
-                  <p className="mt-0.5 text-[13px] leading-snug text-ink-secondary">
+                  <p className="mt-0.5 text-caption leading-snug text-ink-secondary">
                     {t.description}
                   </p>
                 )}
               </div>
               <button
                 onClick={() => dismiss(t.id)}
-                className="rounded p-0.5 text-ink-muted hover:text-ink"
+                className="-mr-1 rounded p-1 text-ink-muted transition-colors hover:text-ink"
                 aria-label="Dismiss"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           );

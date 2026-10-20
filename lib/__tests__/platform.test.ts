@@ -9,11 +9,17 @@ import { prisma } from "@/lib/db";
 // only verify its failure-free export and the pure helpers around it.
 
 describe("authorization model (pure parts)", () => {
-  it("exposes plan resolution that defaults to FREE without a subscription", async () => {
-    // With a non-existent user id the plan falls back to FREE.
-    const plan = await getActivePlan("nonexistent-user-id");
-    expect(plan).toBe("FREE");
-  });
+  it(
+    "exposes plan resolution that defaults to FREE without a subscription",
+    async () => {
+      // With a non-existent user id the plan falls back to FREE.
+      const plan = await getActivePlan("nonexistent-user-id");
+      expect(plan).toBe("FREE");
+    },
+    // The first call opens a pooled connection to Postgres and initialises
+    // the WASM query compiler, which can take longer than the default budget.
+    30_000,
+  );
 });
 
 describe("slug utilities", () => {

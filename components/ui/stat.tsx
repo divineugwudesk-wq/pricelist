@@ -1,6 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/**
+ * A single measured value. Deliberately flat — no hover lift, no icon tile.
+ * Used where a number matters, not to fill a grid.
+ */
 export function StatCard({
   label,
   value,
@@ -15,24 +19,15 @@ export function StatCard({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-navy-100 bg-white p-5 shadow-soft transition-shadow duration-200 hover:shadow-lift",
-        className,
-      )}
-    >
-      <div className="flex items-center justify-between">
-        <p className="text-[13px] font-medium text-ink-secondary">{label}</p>
-        {Icon && (
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
-            <Icon className="h-4 w-4" />
-          </span>
-        )}
+    <div className={cn("rounded-xl border border-neutral-200 bg-white p-4", className)}>
+      <div className="flex items-center gap-1.5">
+        {Icon && <Icon className="h-3.5 w-3.5 text-neutral-400" aria-hidden="true" />}
+        <p className="text-caption text-ink-muted">{label}</p>
       </div>
-      <p className="mt-2 font-heading text-[28px] font-semibold leading-none tracking-tight text-ink">
+      <p className="mt-1.5 font-heading text-headline font-semibold leading-none tracking-tight text-ink">
         {value}
       </p>
-      {sub && <p className="mt-1.5 text-xs text-ink-muted">{sub}</p>}
+      {sub && <p className="mt-1.5 text-caption text-ink-muted">{sub}</p>}
     </div>
   );
 }

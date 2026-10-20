@@ -3,13 +3,15 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-heading: "Manrope", system-ui, sans-serif;
-  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Manrope", var(--font-sans);
+  --font-serif: "Source Serif 4", Georgia, Cambria, "Times New Roman", serif;
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -19,34 +21,55 @@ body {
 }
 
 ::selection {
-  background: rgba(201, 164, 92, 0.3);
+  background: rgba(201, 164, 92, 0.28);
 }
 
-/* Thin, elegant scrollbars */
+/* Focus visibility — one rule, applied everywhere. */
+:focus-visible {
+  outline: 2px solid rgba(27, 74, 115, 0.6);
+  outline-offset: 2px;
+}
+
+/* Thin, quiet scrollbars. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #CBD9E8 transparent;
+  scrollbar-color: #d5d4ce transparent;
 }
 *::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #CBD9E8;
+  background: #d5d4ce;
   border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
-}
-
-/* Focus visibility */
-:focus-visible {
-  outline: 2px solid rgba(45, 95, 145, 0.55);
-  outline-offset: 2px;
 }
 
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* Native select arrow — our own chevron is drawn where one is needed. */
+select {
+  background-image: none;
+}
+
+/* Motion is decoration, never information. Honour the OS preference. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

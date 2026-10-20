@@ -4,6 +4,16 @@
 // Themed entirely through CSS variables from the theme config.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Search,
+  X,
+  Check,
+  Instagram,
+  Facebook,
+  Music2,
+  ExternalLink,
+  MessageCircle,
+} from "lucide-react";
 import type { StorefrontData } from "@/lib/storefront";
 import { CartProvider, useCart } from "./cart-context";
 import { StorefrontHeader } from "./storefront-header";
@@ -18,7 +28,7 @@ import {
   QrDialog,
   ProductViewModal,
 } from "./overlays";
-import { recordEvent } from "@/lib/analytics";
+import { trackEvent } from "@/lib/analytics-client";
 import { generateQrDataUrl } from "@/lib/qr";
 import { buildWhatsAppShareUrl } from "@/lib/whatsapp";
 
@@ -126,7 +136,7 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
   const handleProductView = useCallback(
     (product: StoreProduct) => {
       setViewProduct(product);
-      void recordEvent(store.business.id, "PRODUCT_VIEW", {
+      void trackEvent(store.business.id, "PRODUCT_VIEW", {
         productId: product.id,
         sessionId: getSessionId(),
       });
@@ -182,19 +192,19 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
           </div>
         )}
         <div className="mx-auto max-w-5xl px-4 pb-8 pt-7 sm:px-6">
-          <h2 className={`text-[26px] font-bold leading-tight sm:text-[32px] ${fontClass}`}>
+          <h2 className={`break-words font-bold leading-tight text-headline sm:text-display ${fontClass}`}>
             {store.business.name}
           </h2>
           {store.business.description && (
             <p
-              className="mt-2 max-w-2xl text-[15px] leading-relaxed"
+              className="mt-2 max-w-2xl text-title leading-relaxed"
               style={{ color: t.textSecondary }}
             >
               {store.business.description}
             </p>
           )}
           <div
-            className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]"
+            className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-caption"
             style={{ color: t.textSecondary }}
           >
             <span
@@ -202,7 +212,7 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
               style={{ color: store.isOpen ? "#16845B" : "#C94B4B" }}
             >
               <span
-                className={`h-2 w-2 rounded-full ${store.isOpen ? "animate-pulse" : ""}`}
+                className="h-2 w-2 rounded-full"
                 style={{ background: store.isOpen ? "#16845B" : "#C94B4B" }}
               />
               {store.openLabel}
@@ -272,7 +282,7 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
           )}
           <button
             onClick={() => setSearchOpen(true)}
-            className="ml-auto flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-medium"
+            className="ml-auto flex h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-caption font-medium"
             style={{ background: t.surfaceAlt, color: t.textSecondary }}
             aria-label="Search products"
           >
@@ -286,10 +296,10 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
       <main className="mx-auto max-w-5xl px-4 py-7 sm:px-6">
         {filtered.length === 0 ? (
           <div className="py-16 text-center">
-            <p className={`text-lg font-semibold ${fontClass}`}>
+            <p className={`font-semibold text-lead ${fontClass}`}>
               {query.trim() ? "No matches found" : "Nothing here yet"}
             </p>
-            <p className="mt-1.5 text-sm" style={{ color: t.textSecondary }}>
+            <p className="mt-1.5 text-body" style={{ color: t.textSecondary }}>
               {query.trim()
                 ? `We couldn't find anything for "${query}". Try another search.`
                 : "This business hasn't added products yet."}
@@ -301,7 +311,7 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
               const category = store.categories.find((c) => c.id === categoryId);
               return (
                 <section key={categoryId}>
-                  <h3 className={`mb-4 text-xl font-bold ${fontClass}`} style={{ color: t.text }}>
+                  <h3 className={`mb-4 font-semibold text-lead ${fontClass}`} style={{ color: t.text }}>
                     {category?.name ?? "Products"}
                   </h3>
                   <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4">
@@ -320,7 +330,7 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
             })}
             {grouped.without.length > 0 && (
               <section>
-                <h3 className={`mb-4 text-xl font-bold ${fontClass}`} style={{ color: t.text }}>
+                <h3 className={`mb-4 font-semibold text-lead ${fontClass}`} style={{ color: t.text }}>
                   Products
                 </h3>
                 <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4">
@@ -355,10 +365,10 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
       {/* Footer */}
       <footer className="border-t py-8" style={{ borderColor: t.border, background: t.surface }}>
         <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
-          <p className="text-[13px] font-semibold" style={{ color: t.text }}>
+          <p className="text-caption font-semibold" style={{ color: t.text }}>
             {store.business.name}
           </p>
-          <p className="mt-1 text-xs" style={{ color: t.muted }}>
+          <p className="mt-1 text-caption" style={{ color: t.muted }}>
             {store.business.category}
             {store.business.address ? ` · ${store.business.address}` : ""}
           </p>
@@ -367,7 +377,7 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
               href={buildWhatsAppShareUrl(storeUrl, store.business.name)}
               target="_blank"
               rel="noreferrer"
-              className="mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold text-white transition-transform hover:scale-[1.03]"
+              className="mt-4 inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-caption font-semibold text-white transition-colors hover:brightness-95"
               style={{ background: "#075E54" }}
             >
               <ChatIcon />
@@ -375,7 +385,7 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
             </a>
           )}
           {store.business.showBranding && (
-            <p className="mt-6 text-xs" style={{ color: t.muted }}>
+            <p className="mt-6 text-caption" style={{ color: t.muted }}>
               Powered by{" "}
               <a
                 href="/"
@@ -443,7 +453,7 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
       {/* Order placed confirmation */}
       {orderPlaced && whatsappUrl && (
         <div
-          className="fixed inset-x-4 top-4 z-[80] mx-auto max-w-md rounded-2xl p-4 shadow-lift animate-slide-down"
+          className="fixed inset-x-4 top-4 z-[80] mx-auto max-w-md rounded-xl p-4 shadow-lift animate-slide-down"
           style={{ background: t.surface, border: `1px solid ${t.border}` }}
           role="status"
         >
@@ -455,10 +465,10 @@ function StorefrontInner({ store }: { store: StorefrontData }) {
               <CheckIcon />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold" style={{ color: t.text }}>
+              <p className="text-body font-semibold" style={{ color: t.text }}>
                 Order ready
               </p>
-              <p className="mt-0.5 text-[13px]" style={{ color: t.textSecondary }}>
+              <p className="mt-0.5 text-caption" style={{ color: t.textSecondary }}>
                 WhatsApp should have opened with your order. If not,{" "}
                 <a href={whatsappUrl} className="font-semibold underline" style={{ color: t.primary }}>
                   open WhatsApp
@@ -492,16 +502,6 @@ function getSessionId(): string {
 }
 
 /* Small icon wrappers to keep imports tidy. */
-import {
-  Search,
-  X,
-  Check,
-  Instagram,
-  Facebook,
-  Music2,
-  ExternalLink,
-  MessageCircle,
-} from "lucide-react";
 
 function SearchIcon() {
   return <Search className="h-4 w-4" />;

@@ -1,10 +1,25 @@
 // Seed script — realistic demo data for visual testing.
 // Run: npm run db:seed
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 import type { BusinessCategory } from "@/lib/db-types";
 
-const prisma = new PrismaClient();
+// The client is generated with `engineType = "client"`, which always requires
+// a driver adapter — the same wiring the Worker uses in lib/db.ts.
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL is not set. Run this from the project root so .env is loaded.");
+}
+
+const pool = new Pool({
+  connectionString: connectionString.replace(/([?&])sslmode=[^&]*/, "$1").replace(/\?&/, "?").replace(/[?&]$/, ""),
+  ssl: { rejectUnauthorized: false },
+  max: 1,
+});
+
+const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
 async function main() {
   console.log("🌱 Seeding PRICELIST…");
@@ -370,7 +385,7 @@ async function main() {
       });
     }
   }
-  // Chunk inserts (SQLite parameter limit).
+  // Chunk inserts (Postgres parameter limit).
   for (let i = 0; i < events.length; i += 500) {
     await prisma.analyticsEvent.createMany({
       data: events.slice(i, i + 500),
@@ -395,4 +410,7 @@ main()
     console.error("Seed failed:", error);
     process.exit(1);
   })
-  .finally(() => prisma.$disconnect());
+  .finally(async () => {
+    await prisma.$disconnect();
+    await pool.end();
+  });

@@ -1,9 +1,13 @@
 // Analytics service. Events are stored in the database and aggregated
 // for the dashboard/admin. No third-party dependency required.
+//
+// This module is server-only. Browser code uses `lib/analytics-client.ts`,
+// which posts events to the API route.
 
 import { prisma } from "@/lib/db";
+import type { AnalyticsEventType } from "@/lib/analytics-client";
 
-export type AnalyticsEventType = "STORE_VIEW" | "PRODUCT_VIEW" | "WHATSAPP_CLICK";
+export type { AnalyticsEventType };
 
 export function newSessionId(): string {
   return crypto.randomUUID();

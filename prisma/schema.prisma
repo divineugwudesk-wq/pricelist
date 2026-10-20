@@ -1,12 +1,16 @@
 // PRICELIST data model.
 //
-// Development uses SQLite (string-based status fields).
-// For production PostgreSQL:
-//   1. change `provider` below to "postgresql"
-//   2. set DATABASE_URL to your Postgres connection string
-//   3. run: npx prisma migrate dev
+// PostgreSQL is the only supported production datasource.
+//   1. set DATABASE_URL to your Postgres connection string
+//   2. run: npx prisma migrate deploy
+//
+// `engineType = "client"` selects the Rust-free client (WASM query compiler).
+// The native query engine cannot load inside the Cloudflare Workers runtime
+// (workerd), so the driver-adapter + client engine is mandatory for the
+// deployed Worker. See lib/db.ts for the pg driver adapter wiring.
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  engineType = "client"
 }
 
 datasource db {

@@ -1,116 +1,243 @@
 "use client";
 
 import { useState } from "react";
-import { formatNaira, formatNairaCompact } from "@/lib/money";
-import { DashboardLayout } from "@/components/dashboard-layout";
-import { StatCard } from "@/components/ui/stat";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { formatDateTime, timeAgo } from "@/lib/utils";
 import Link from "next/link";
 import {
-  Eye,
-  Package,
-  MessageCircle,
-  TrendingUp,
-  Plus,
-  Palette,
-  Share2,
-  ExternalLink,
   ArrowRight,
+  Check,
+  CircleAlert,
+  Copy,
+  ExternalLink,
+  MessageCircle,
+  Package,
+  QrCode,
   ShoppingBag,
-  FolderOpen,
 } from "lucide-react";
+import { formatNaira, formatNairaCompact } from "@/lib/money";
+import { timeAgo } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Metrics } from "@/components/ui/metrics";
+import { EmptyState } from "@/components/ui/empty-state";
 import { generateQrDataUrl } from "@/lib/qr";
 import type { Plan } from "@/lib/db-types";
-import { PLANS, type PlanDefinition } from "@/lib/plans";
+import { type PlanDefinition } from "@/lib/plan-data";
 
-interface Business {
+interface OrderRow {
   id: string;
-  name: string;
-  slug: string;
-  categories: Array<{ id: string; name: string }>;
-  orders: Array<{ id: string; customerName: string | null; items: Array<unknown>; total: number; status: string; createdAt: Date }>;
-  products: Array<{ id: string; name: string; slug: string; price: number; salePrice: number | null; imageUrl: string | null; isAvailable: boolean; isFeatured: boolean }>;
+  customerName: string | null;
+  items: Array<unknown>;
+  total: number;
+  status: string;
+  createdAt: Date;
 }
 
-interface User {
+interface ProductRow {
   id: string;
-  name: string | null;
-  email: string | null;
-  role: "USER" | "ADMIN";
+  name: string;
+  price: number;
+  salePrice: number | null;
+  imageUrl: string | null;
+  isAvailable: boolean;
+  isFeatured: boolean;
 }
 
 interface DashboardClientProps {
-  business: Business & {
-    orders: Array<{ id: string; customerName: string | null; items: Array<unknown>; total: number; status: string; createdAt: Date }>;
-    products: Array<{ id: string; name: string; slug: string; price: number; salePrice: number | null; imageUrl: string | null; isAvailable: boolean; isFeatured: boolean }>;
+  business: {
+    name: string;
+    slug: string;
+    description: string | null;
+    whatsappNumber: string | null;
+    logoUrl: string | null;
+    orders: OrderRow[];
+    products: ProductRow[];
+    categories: Array<{ id: string; name: string }>;
   };
-  user: User;
   plan: Plan;
   planDef: PlanDefinition;
   productCount: number;
+  orderCount: number;
+  revenue: number;
+  newOrderCount: number;
+  hiddenProductCount: number;
 }
+
+const STATUS_TONE: Record<string, "success" | "danger" | "warning" | "brand" | "neutral"> = {
+  COMPLETED: "success",
+  CANCELLED: "danger",
+  CONFIRMED: "brand",
+  CONTACTED: "warning",
+  NEW: "neutral",
+};
 
 export function DashboardClient({
   business,
-  user,
   plan,
   planDef,
   productCount,
+  orderCount,
+  revenue,
+  newOrderCount,
+  hiddenProductCount,
 }: DashboardClientProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const usage =
-    planDef.maxProducts === null
-      ? `${productCount} / ∞`
-      : `${productCount} / ${planDef.maxProducts}`;
+  const storeUrl = `${process.env.APP_URL ?? "http://localhost:3000"}/${business.slug}`;
+  const productLimit = planDef.maxProducts;
+  const usageLabel = productLimit === null ? `${productCount} products` : `${productCount} / ${productLimit}`;
+  const usagePercent =
+    productLimit === null || productLimit === 0
+      ? 0
+      : Math.min(100, Math.round((productCount / productLimit) * 100));
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(storeUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard can be blocked by the browser */
+    }
+  };
 
   const handleGenerateQr = async () => {
-    const url = `${process.env.APP_URL ?? "http://localhost:3000"}/${business.slug}`;
-    const dataUrl = await generateQrDataUrl(url);
+    const dataUrl = await generateQrDataUrl(storeUrl);
     setQrDataUrl(dataUrl);
   };
 
+  const whatsappShare = `Hi, have a look at my store — ${storeUrl}`;
+
+  const checklist = [
+    {
+      done: Boolean(business.whatsappNumber),
+      label: "Add your WhatsApp number",
+      detail: "Orders arrive as WhatsApp messages.",
+      href: "/dashboard/settings",
+    },
+    {
+      done: productCount > 0,
+      label: "Add your first product",
+      detail: "List a product or a service with its price.",
+      href: "/dashboard/products/new",
+    },
+    {
+      done: business.categories.length > 0,
+      label: "Add a category",
+      detail: "Categories keep your list tidy.",
+      href: "/dashboard/categories",
+    },
+    {
+      done: Boolean(business.description),
+      label: "Describe your business",
+      detail: "A line about what you sell builds trust.",
+      href: "/dashboard/settings",
+    },
+  ];
+  const outstanding = checklist.filter((item) => !item.done);
+
   return (
     <div className="space-y-6">
-      {/* Stats row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Products"
-          value={String(productCount)}
-          icon={Package}
-        />
-        <StatCard
-          label="Orders (all time)"
-          value={String(business.orders.length)}
-          icon={ShoppingBag}
-        />
-        <StatCard
-          label="Revenue (all time)"
-          value={formatNairaCompact(business.orders.reduce((sum, o) => sum + o.total, 0))}
-          icon={TrendingUp}
-        />
-        <StatCard
-          label="Categories"
-          value={String(business.categories?.length ?? 0)}
-          icon={FolderOpen}
-        />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-headline font-semibold text-ink">
+            {business.name}
+          </h1>
+          <p className="mt-1 text-body text-ink-secondary">
+            Share your link, take orders on WhatsApp, keep your list up to date.
+          </p>
+        </div>
+        <a href={`/${business.slug}`} target="_blank" rel="noreferrer">
+          <Button variant="outline" size="sm">
+            <ExternalLink className="h-3.5 w-3.5" />
+            Open storefront
+          </Button>
+        </a>
       </div>
 
-      {/* Recent orders + Quick actions */}
+      {/* The one action that matters: get the link out there. */}
+      <Card>
+        <CardBody className="space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-caption font-medium text-ink-secondary">Your store link</p>
+              <p className="mt-1 font-serif text-lead text-ink break-all">{storeUrl}</p>
+              <p className="mt-2 text-caption text-ink-muted">
+                Put it in your WhatsApp status, your Instagram bio, or send it to customers
+                directly. Every visit opens your list and the order button.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => void copyLink()}>
+              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? "Link copied" : "Copy link"}
+            </Button>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(whatsappShare)}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Button variant="whatsapp" size="sm">
+                <MessageCircle className="h-3.5 w-3.5" />
+                Share on WhatsApp
+              </Button>
+            </a>
+            <Button variant="outline" size="sm" onClick={() => void handleGenerateQr()}>
+              <QrCode className="h-3.5 w-3.5" />
+              Get QR code
+            </Button>
+          </div>
+          {qrDataUrl && (
+            <div className="flex items-center gap-4 border-t border-neutral-100 pt-4">
+              {/* eslint-disable-next-line @next/next/no-img-element -- data URL, no optimizer involved */}
+              <img
+                src={qrDataUrl}
+                alt={`QR code linking to ${business.name}`}
+                className="h-28 w-28 rounded-lg border border-neutral-200 bg-white p-1.5"
+              />
+              <p className="text-caption text-ink-muted">
+                Print this on your counter, your flyer, or your business card. It opens your
+                store on any phone.
+              </p>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+
+      {/* Totals */}
+      <Metrics
+        items={[
+          {
+            label: "Orders",
+            value: String(orderCount),
+            sub: newOrderCount > 0 ? `${newOrderCount} new` : undefined,
+          },
+          {
+            label: "Revenue",
+            value: formatNairaCompact(revenue),
+            sub: "cancelled orders excluded",
+          },
+          {
+            label: "Products",
+            value: String(productCount),
+            sub: hiddenProductCount > 0 ? `${hiddenProductCount} hidden` : undefined,
+          },
+          { label: "Categories", value: String(business.categories.length) },
+        ]}
+      />
+
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="space-y-6 lg:col-span-2">
           <Card>
             <CardHeader
               title="Recent orders"
-              subtitle="Orders placed through WhatsApp"
+              subtitle="Orders customers placed through your link"
               action={
                 <Link href="/dashboard/orders">
                   <Button variant="ghost" size="sm">
-                    View all
+                    All orders
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Button>
                 </Link>
@@ -120,250 +247,167 @@ export function DashboardClient({
               {business.orders.length === 0 ? (
                 <EmptyState
                   compact
-                  icon={<ShoppingBagIcon />}
+                  icon={<ShoppingBag className="h-5 w-5" />}
                   title="No orders yet"
-                  description="When customers order through WhatsApp, they'll appear here."
+                  description="Share your store link and the first order will show up here."
                 />
               ) : (
-                <div className="divide-y divide-navy-50">
+                <ul className="divide-y divide-neutral-100">
                   {business.orders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="flex items-center gap-4 px-4 py-3"
-                    >
+                    <li key={order.id} className="flex items-center gap-4 px-3 py-3">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-ink">
+                        <p className="truncate text-body font-medium text-ink">
                           {order.customerName || "WhatsApp customer"}
                         </p>
-                        <p className="text-xs text-ink-muted">
+                        <p className="mt-0.5 text-caption text-ink-muted">
                           {order.items.length} item{order.items.length === 1 ? "" : "s"} ·{" "}
                           {timeAgo(order.createdAt)}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-ink">
+                      <div className="flex shrink-0 items-center gap-3">
+                        <p className="text-body font-semibold text-ink">
                           {formatNaira(order.total)}
                         </p>
-                        <Badge
-                          tone={
-                            order.status === "COMPLETED"
-                              ? "success"
-                              : order.status === "CANCELLED"
-                              ? "danger"
-                              : order.status === "CONFIRMED"
-                              ? "gold"
-                              : "navy"
-                          }
-                        >
-                          {order.status}
+                        <Badge tone={STATUS_TONE[order.status] ?? "neutral"}>
+                          {order.status.toLowerCase()}
                         </Badge>
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </CardBody>
           </Card>
+
+          {business.products.length > 0 && (
+            <Card>
+              <CardHeader
+                title="Your products"
+                action={
+                  <Link href="/dashboard/products">
+                    <Button variant="ghost" size="sm">
+                      Manage
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
+                }
+              />
+              <CardBody className="px-2 py-3">
+                <ul className="divide-y divide-neutral-100">
+                  {business.products.map((product) => (
+                    <li key={product.id} className="flex items-center gap-3 px-3 py-3">
+                      {product.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- user-supplied remote URL
+                        <img
+                          src={product.imageUrl}
+                          alt=""
+                          className="h-11 w-11 shrink-0 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-ink-muted">
+                          <Package className="h-4 w-4" />
+                        </span>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-body font-medium text-ink">{product.name}</p>
+                        <p className="text-caption text-ink-muted">
+                          {formatNaira(product.salePrice ?? product.price)}
+                        </p>
+                      </div>
+                      <Badge tone={product.isAvailable ? "success" : "neutral"}>
+                        {product.isAvailable ? "Live" : "Hidden"}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              </CardBody>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">
-          {/* Share store */}
-          <Card>
-            <CardHeader title="Share your store" subtitle="Get the word out" />
-            <CardBody>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-ink">{business.name}</p>
-                    <p className="text-sm text-ink-muted truncate">
-                      {process.env.APP_URL ?? "http://localhost:3000"}/{business.slug}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={`https://wa.me/?text=${encodeURIComponent(
-                        `Check out my products and prices on PRICELIST 👇\n${process.env.APP_URL ?? "http://localhost:3000"}/${business.slug}`,
-                      )}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <Button variant="outline" size="sm">
-                        <Share2 className="h-3.5 w-3.5" />
-                        WhatsApp
-                      </Button>
-                    </a>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        void navigator.clipboard?.writeText(
-                          `${process.env.APP_URL ?? "http://localhost:3000"}/${business.slug}`,
-                        );
-                      }}
-                    >
-                      Copy link
-                    </Button>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={handleGenerateQr}
-                >
-                  Generate QR code
-                </Button>
-                {qrDataUrl && (
-                  <div className="mt-3 text-center">
-                    <img src={qrDataUrl} alt="QR code" className="mx-auto rounded-xl border border-navy-100 p-2" />
-                    <p className="mt-2 text-xs text-ink-muted">Scan to open store</p>
-                  </div>
-                )}
-              </div>
-            </CardBody>
-          </Card>
+          {outstanding.length > 0 && (
+            <Card>
+              <CardHeader
+                title="Finish setting up"
+                subtitle={`${outstanding.length} step${outstanding.length === 1 ? "" : "s"} left`}
+              />
+              <CardBody className="space-y-3">
+                {outstanding.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="group flex items-start gap-3 rounded-lg border border-neutral-200 p-3 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+                  >
+                    <CircleAlert
+                      className="mt-0.5 h-4 w-4 shrink-0 text-gold-deep"
+                      aria-hidden="true"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-body font-medium text-ink">{item.label}</span>
+                      <span className="block text-caption text-ink-muted">{item.detail}</span>
+                    </span>
+                    <ArrowRight
+                      className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted transition-transform group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                ))}
+              </CardBody>
+            </Card>
+          )}
 
-          {/* Plan usage */}
           <Card>
             <CardHeader
               title={`${planDef.name} plan`}
-              subtitle={plan === "FREE" ? "Upgrade anytime" : "Active"}
+              subtitle={
+                plan === "FREE" ? "You are on the free plan" : "Your subscription is active"
+              }
             />
             <CardBody>
-              <div className="mb-2 flex items-center justify-between text-[13px]">
-                <span className="text-ink-secondary">Product usage</span>
-                <span className="font-medium text-ink">{usage}</span>
+              <div className="flex items-center justify-between text-caption">
+                <span className="text-ink-secondary">Products used</span>
+                <span className="font-medium text-ink">{usageLabel}</span>
               </div>
-              {planDef.maxProducts && (
-                <div className="h-1.5 overflow-hidden rounded-full bg-navy-100">
+              {productLimit !== null && (
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-neutral-100">
                   <div
                     className={`h-full rounded-full transition-all ${
-                      productCount >= planDef.maxProducts ? "bg-gold" : "bg-navy-800"
+                      usagePercent >= 100 ? "bg-warning" : "bg-navy-800"
                     }`}
-                    style={{
-                      width: `${Math.min(100, (productCount / planDef.maxProducts) * 100)}%`,
-                    }}
+                    style={{ width: `${usagePercent}%` }}
                   />
                 </div>
               )}
-              {plan === "FREE" && (
-                <div className="mt-4 rounded-xl bg-navy-50 p-4">
-                  <p className="text-[13px] font-medium text-ink">
-                    {productCount >= (planDef.maxProducts ?? 5)
-                      ? "You've reached your Free plan limit."
+              {plan === "FREE" ? (
+                <div className="mt-4 border-t border-neutral-100 pt-4">
+                  <p className="text-body font-medium text-ink">
+                    {productCount >= (productLimit ?? 5)
+                      ? "You have reached your product limit."
                       : "Need more products?"}
                   </p>
-                  <p className="mt-0.5 text-xs text-ink-muted">
-                    Starter gives you up to 50 products, search, analytics and more.
+                  <p className="mt-1 text-caption text-ink-muted">
+                    Starter gives you up to 50 products, more categories and your own colours.
                   </p>
-                  <Link href="/dashboard/billing">
-                    <Button variant="gold" size="sm" className="mt-3 w-full">
-                      Upgrade for ₦1,500/mo
+                  <Link href="/dashboard/billing" className="mt-3 block">
+                    <Button size="sm" className="w-full">
+                      See plans
                     </Button>
                   </Link>
                 </div>
+              ) : (
+                <Link
+                  href="/dashboard/billing"
+                  className="mt-4 inline-flex items-center gap-1.5 text-caption font-medium text-ink hover:underline"
+                >
+                  Manage billing
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               )}
             </CardBody>
           </Card>
         </div>
       </div>
-
-      {/* Quick actions */}
-      <div className="mt-6">
-        <p className="mb-3 text-[13px] font-medium text-ink-secondary">Quick actions</p>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Link href="/dashboard/products/new">
-            <QuickAction icon={<Plus className="h-5 w-5" />} label="Add product" />
-          </Link>
-          <Link href="/dashboard/store">
-            <QuickAction icon={<Palette className="h-5 w-5" />} label="Customize store" />
-          </Link>
-          <Link href={`/${business.slug}`} target="_blank" rel="noreferrer">
-            <QuickAction icon={<ExternalLink className="h-5 w-5" />} label="View store" />
-          </Link>
-          <Link href="/dashboard/products">
-            <QuickAction icon={<Package className="h-5 w-5" />} label="Manage products" />
-          </Link>
-        </div>
-      </div>
-
-      {/* Top products preview */}
-      {business.products.length > 0 && (
-        <Card className="mt-6">
-          <CardHeader
-            title="Latest products"
-            action={
-              <Link href="/dashboard/products">
-                <Button variant="ghost" size="sm">
-                  Manage
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            }
-          />
-          <CardBody>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {business.products.map((p) => (
-                <div key={p.id} className="flex items-center gap-3 rounded-xl border border-navy-50 p-3">
-                  {p.imageUrl ? (
-                    <img
-                      src={p.imageUrl}
-                      alt={p.name}
-                      className="h-14 w-14 shrink-0 rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className="h-14 w-14 shrink-0 rounded-xl bg-navy-50 flex items-center justify-center">
-                      <Package className="h-6 w-6 text-navy-300" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-ink">{p.name}</p>
-                    <p className="text-xs text-ink-muted">
-                      {formatNaira(p.salePrice ?? p.price)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {p.isFeatured && <Star className="h-3.5 w-3.5 text-gold" />}
-                    <Badge
-                      tone={p.isAvailable ? "success" : "muted"}
-                      className="text-[10px]"
-                    >
-                      {p.isAvailable ? "Active" : "Hidden"}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
-      )}
     </div>
-  );
-}
-
-function QuickAction({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-2 rounded-2xl border border-navy-100 bg-white p-4 text-center transition-colors hover:border-navy-200">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
-        {icon}
-      </div>
-      <span className="text-[13px] font-medium text-ink">{label}</span>
-    </div>
-  );
-}
-
-function ShoppingBagIcon() {
-  return (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a2 2 0 00-2-2H6a2 2 0 00-2 2v4m14 0h-2m2 0v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4" />
-    </svg>
-  );
-}
-
-function Star({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
-      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-    </svg>
   );
 }

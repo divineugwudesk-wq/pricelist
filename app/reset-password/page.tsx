@@ -89,8 +89,8 @@ function ResetPasswordForm() {
           </Button>
         </form>
       ) : (
-        <div className="rounded-2xl bg-navy-50 p-5 text-center">
-          <p className="text-sm text-ink-secondary">
+        <div className="rounded-xl bg-neutral-50 p-5 text-center">
+          <p className="text-body text-ink-secondary">
             This reset link is missing or invalid. Request a new one below.
           </p>
           <Link href="/forgot-password" className="mt-4 inline-block">

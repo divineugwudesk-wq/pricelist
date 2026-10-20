@@ -3,7 +3,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "gold" | "outline" | "ghost" | "danger" | "secondary" | "light";
+type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger" | "whatsapp" | "onDark";
 type Size = "sm" | "md" | "lg" | "icon";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,22 +13,21 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary:
-    "bg-navy-900 text-white hover:bg-navy-700 active:bg-navy-950 shadow-sm",
-  gold: "bg-gold text-navy-950 hover:bg-gold-soft active:bg-gold-deep shadow-sm font-semibold",
-  outline:
-    "border border-navy-200 bg-white text-navy-800 hover:border-navy-400 hover:bg-navy-50",
-  ghost: "text-navy-800 hover:bg-navy-50 hover:text-navy-900",
-  danger: "bg-danger text-white hover:bg-[#B33F3F] shadow-sm",
-  secondary: "bg-navy-100 text-navy-900 hover:bg-navy-200",
-  light: "bg-white text-navy-900 border border-navy-200 hover:bg-navy-50",
+  // One filled primary style. Everything else steps down from it.
+  primary: "bg-navy-900 text-white hover:bg-navy-800 active:bg-navy-950",
+  secondary: "bg-neutral-100 text-ink hover:bg-neutral-200",
+  outline: "border border-neutral-300 bg-white text-ink hover:border-neutral-400 hover:bg-neutral-50",
+  ghost: "text-ink-secondary hover:bg-neutral-100 hover:text-ink",
+  danger: "bg-danger text-white hover:bg-[#9C3232]",
+  whatsapp: "bg-whatsapp text-white hover:bg-[#064A42]",
+  onDark: "bg-white text-navy-900 hover:bg-neutral-100",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3.5 text-[13px] rounded-lg gap-1.5",
-  md: "h-11 px-5 text-sm rounded-xl gap-2",
-  lg: "h-[52px] px-7 text-[15px] rounded-xl gap-2",
-  icon: "h-10 w-10 rounded-xl",
+  sm: "h-9 px-3 text-caption rounded-md gap-1.5",
+  md: "h-11 px-4 text-body rounded-md gap-2",
+  lg: "h-12 px-5 text-title rounded-md gap-2",
+  icon: "h-10 w-10 rounded-md",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -36,9 +35,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center font-medium transition-all duration-200",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500/50",
-        "disabled:pointer-events-none disabled:opacity-50 select-none whitespace-nowrap",
+        "inline-flex items-center justify-center whitespace-nowrap font-medium",
+        "transition-colors duration-150",
+        "disabled:pointer-events-none disabled:opacity-45",
         variants[variant],
         sizes[size],
         className,

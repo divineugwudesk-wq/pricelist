@@ -1,11 +1,19 @@
 "use client";
 
-// Product card — clean, premium, conversion-focused.
+// Product card — the customer-facing unit of the catalogue.
 import Image from "next/image";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, Tag } from "lucide-react";
 import { formatNaira } from "@/lib/money";
-import type { StorefrontData } from "@/lib/storefront";
+import type { Theme } from "@/lib/themes";
 import { useState } from "react";
+
+/** Two-letter monogram used when a product has no photo yet. */
+export function initialsOf(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "•";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
 
 export interface StoreProduct {
   id: string;
@@ -27,7 +35,8 @@ export function ProductCard({
   onView,
 }: {
   product: StoreProduct;
-  store: StorefrontData;
+  /** Only the theme is needed to render a card. */
+  store: { theme: Theme };
   onAdd: () => void;
   onView: () => void;
 }) {
@@ -41,7 +50,7 @@ export function ProductCard({
 
   return (
     <article
-      className="group flex flex-col overflow-hidden rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift"
+      className="group flex flex-col overflow-hidden rounded-xl border"
       style={{
         borderColor: t.border,
         background: t.surface,
@@ -60,45 +69,44 @@ export function ProductCard({
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, 25vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover"
             loading="lazy"
           />
         ) : (
           <span
-            className="flex h-full items-center justify-center font-heading text-3xl"
+            className="flex h-full items-center justify-center font-heading text-xl font-semibold tracking-wide"
             style={{ color: t.muted }}
+            aria-hidden="true"
           >
-            {product.type === "SERVICE" ? "✦" : "◆"}
+            {product.type === "SERVICE" ? (
+              <Tag className="h-7 w-7" />
+            ) : (
+              initialsOf(product.name)
+            )}
           </span>
         )}
         {hasSale && (
           <span
-            className="absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide"
-            style={{ background: "#C94B4B", color: "#fff" }}
+            className="absolute left-2 top-2 rounded-md px-2 py-0.5 text-micro font-semibold"
+            style={{ background: "#B23B3B", color: "#fff" }}
           >
             Sale
           </span>
         )}
         {product.isFeatured && !hasSale && (
           <span
-            className="absolute left-2.5 top-2.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide"
+            className="absolute left-2 top-2 rounded-md px-2 py-0.5 text-micro font-semibold"
             style={{ background: t.accent, color: t.onAccent }}
           >
             Featured
           </span>
         )}
-        <span
-          className="absolute right-2.5 top-2.5 rounded-full px-2 py-1 text-[10px] font-semibold"
-          style={{ background: `${t.primary}1A`, color: t.primary }}
-        >
-          {product.type === "SERVICE" ? "Service" : "Product"}
-        </span>
       </button>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-3.5">
         <button onClick={onView} className="text-left">
           <h3
-            className={`text-[15px] font-semibold leading-snug ${
+            className={`line-clamp-2 break-words text-title font-semibold leading-snug ${
               editorial ? "font-serif" : "font-heading"
             }`}
             style={{ color: t.text }}
@@ -108,25 +116,22 @@ export function ProductCard({
         </button>
         {product.description && (
           <p
-            className="mt-1 line-clamp-2 text-[13px] leading-relaxed"
+            className="mt-1 line-clamp-2 break-words text-caption leading-relaxed"
             style={{ color: t.textSecondary }}
           >
             {product.description}
           </p>
         )}
-        <div className="mt-auto flex items-end justify-between pt-3">
-          <div className="flex flex-wrap items-baseline gap-x-2">
+        <div className="mt-auto flex items-end justify-between gap-2 pt-3">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
             <span
-              className="font-heading text-[17px] font-bold"
-              style={{ color: hasSale ? "#C94B4B" : t.text }}
+              className="font-heading text-lead font-semibold"
+              style={{ color: hasSale ? "#B23B3B" : t.text }}
             >
               {formatNaira(hasSale ? product.salePriceKobo! : product.priceKobo)}
             </span>
             {hasSale && (
-              <span
-                className="text-xs line-through"
-                style={{ color: t.muted }}
-              >
+              <span className="text-caption line-through" style={{ color: t.muted }}>
                 {formatNaira(product.priceKobo)}
               </span>
             )}
@@ -137,9 +142,9 @@ export function ProductCard({
               setAdded(true);
               window.setTimeout(() => setAdded(false), 1200);
             }}
-            className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-200 active:scale-95`}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-colors"
             style={{
-              background: added ? "#16845B" : t.primary,
+              background: added ? "#167A55" : t.primary,
               color: t.onPrimary,
             }}
             aria-label={`Add ${product.name} to order`}

@@ -16,17 +16,20 @@ import {
   Plus,
   ShoppingBag,
   MessageCircle,
+  Tag,
 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { StorefrontData } from "@/lib/storefront";
 import type { StoreProduct } from "./product-card";
+import { initialsOf } from "./product-card";
 import { useCart } from "./cart-context";
 import { formatNaira } from "@/lib/money";
 import {
   buildWhatsAppShareUrl,
   buildGenericShareUrl,
+  buildShareMessage,
 } from "@/lib/whatsapp";
 
 /* ---------- Category chip ---------- */
@@ -43,7 +46,7 @@ export function CategoryChip({
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 rounded-full px-4 py-2 text-[13px] font-medium transition-all duration-150 ${
+      className={`shrink-0 rounded-full px-4 py-2 text-caption font-medium transition-all duration-150 ${
         active ? "shadow-sm" : ""
       }`}
       style={{
@@ -97,38 +100,29 @@ export function StickyOrderBar({
   onOpenCart: () => void;
 }) {
   const cart = useCart();
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setVisible(window.scrollY > 240);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   if (cart.count === 0) return null;
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-30 px-4 pb-4 transition-all duration-200 sm:hidden ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0"
-      }`}
+      className="fixed inset-x-0 bottom-0 z-30 px-4 pb-4 sm:hidden"
       style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
     >
       <button
         onClick={onOpenCart}
-        className="flex h-[52px] w-full items-center justify-between rounded-2xl px-5 text-white shadow-lift"
+        className="flex h-[52px] w-full items-center justify-between rounded-lg px-5 text-white shadow-lift"
         style={{ background: "#075E54" }}
         aria-label={`View order, ${cart.count} items, total ${formatNaira(cart.totals.totalKobo)}`}
       >
-        <span className="flex items-center gap-2 text-sm font-medium">
-          <ShoppingBag className="h-4.5 w-4.5" />
+        <span className="flex items-center gap-2 text-body font-medium">
+          <ShoppingBag className="h-4 w-4" />
           {cart.count} item{cart.count === 1 ? "" : "s"}
         </span>
         <span className="flex items-center gap-3">
-          <span className="font-heading text-base font-bold">
+          <span className="font-heading text-lead font-semibold">
             {formatNaira(cart.totals.totalKobo)}
           </span>
-          <span className="rounded-lg bg-white/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wide">
+          <span className="rounded-md bg-white/20 px-3 py-1 text-caption font-medium">
             View order
           </span>
         </span>
@@ -199,7 +193,7 @@ export function SearchOverlay({
 
         <div className="mt-4 max-h-[50vh] space-y-2 overflow-y-auto">
           {results.length === 0 ? (
-            <p className="py-8 text-center text-sm" style={{ color: "var(--pl-text-secondary)" }}>
+            <p className="py-8 text-center text-body" style={{ color: "var(--pl-text-secondary)" }}>
               {query ? `No results for "${query}"` : "Type to search the catalog"}
             </p>
           ) : (
@@ -223,16 +217,20 @@ export function SearchOverlay({
                   {p.imageUrl ? (
                     <Image src={p.imageUrl} alt={p.name} fill sizes="48px" className="object-cover" />
                   ) : (
-                    <span className="flex h-full items-center justify-center" style={{ color: "var(--pl-muted)" }}>
-                      ◆
+                    <span
+                      className="flex h-full items-center justify-center font-heading text-caption font-semibold"
+                      style={{ color: "var(--pl-muted)" }}
+                      aria-hidden="true"
+                    >
+                      {initialsOf(p.name)}
                     </span>
                   )}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium" style={{ color: "var(--pl-text)" }}>
+                  <span className="block truncate text-body font-medium" style={{ color: "var(--pl-text)" }}>
                     {p.name}
                   </span>
-                  <span className="text-xs" style={{ color: "var(--pl-text-secondary)" }}>
+                  <span className="text-caption" style={{ color: "var(--pl-text-secondary)" }}>
                     {p.salePriceKobo && p.salePriceKobo < p.priceKobo
                       ? formatNaira(p.salePriceKobo)
                       : formatNaira(p.priceKobo)}
@@ -285,7 +283,7 @@ export function ShareDialog({
   setCopied: (v: boolean) => void;
   onOpenQr: () => void;
 }) {
-  const shareMessage = `Check out my products and prices on PRICELIST 👇\n${storeUrl}`;
+  const shareMessage = buildShareMessage(storeUrl, businessName);
   const waUrl = buildWhatsAppShareUrl(storeUrl, businessName);
 
   async function copyLink() {
@@ -301,7 +299,7 @@ export function ShareDialog({
   return (
     <Dialog open={open} onClose={onClose} title="Share your store" className="max-w-sm">
       <div className="space-y-3 px-5 py-5">
-        <p className="text-[13px] leading-relaxed" style={{ color: "var(--pl-text-secondary)" }}>
+        <p className="text-caption leading-relaxed" style={{ color: "var(--pl-text-secondary)" }}>
           Share your link anywhere — WhatsApp status, Instagram bio, flyers,
           business cards.
         </p>
@@ -310,7 +308,7 @@ export function ShareDialog({
           href={waUrl}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-semibold text-white transition-transform hover:scale-[1.01]"
+          className="flex items-center gap-3 rounded-lg px-4 py-3.5 text-body font-semibold text-white transition-colors hover:brightness-95"
           style={{ background: "#075E54" }}
         >
           <MessageCircle className="h-5 w-5" />
@@ -320,17 +318,17 @@ export function ShareDialog({
           href={buildGenericShareUrl("facebook", storeUrl, businessName)}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
+          className="flex items-center gap-3 rounded-xl border px-4 py-3 text-body font-medium transition-colors"
           style={{ borderColor: "var(--pl-border)", color: "var(--pl-text)", background: "var(--pl-surface)" }}
         >
-          <Share2 className="h-4.5 w-4.5" />
+          <Share2 className="h-4 w-4" />
           Share on Facebook
         </a>
         <a
           href={buildGenericShareUrl("x", storeUrl, businessName)}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
+          className="flex items-center gap-3 rounded-xl border px-4 py-3 text-body font-medium transition-colors"
           style={{ borderColor: "var(--pl-border)", color: "var(--pl-text)", background: "var(--pl-surface)" }}
         >
           <span className="font-black">X</span>
@@ -338,31 +336,31 @@ export function ShareDialog({
         </a>
         <button
           onClick={onOpenQr}
-          className="flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
+          className="flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-body font-medium transition-colors"
           style={{ borderColor: "var(--pl-border)", color: "var(--pl-text)", background: "var(--pl-surface)" }}
         >
-          <QrCode className="h-4.5 w-4.5" />
+          <QrCode className="h-4 w-4" />
           Show QR code
         </button>
         <button
           onClick={() => void copyLink()}
-          className="flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
+          className="flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-body font-medium transition-colors"
           style={{ borderColor: "var(--pl-border)", color: "var(--pl-text)", background: "var(--pl-surface)" }}
         >
           {copied ? (
-            <Check className="h-4.5 w-4.5 text-[#16845B]" />
+            <Check className="h-4 w-4 text-success" />
           ) : (
-            <Copy className="h-4.5 w-4.5" />
+            <Copy className="h-4 w-4" />
           )}
           {copied ? "Link copied" : "Copy link"}
         </button>
 
         <div
-          className="rounded-xl p-3.5 text-[13px]"
+          className="rounded-xl p-3.5 text-caption"
           style={{ background: "var(--pl-surface-alt)", color: "var(--pl-text-secondary)" }}
         >
           Share message:
-          <p className="mt-1.5 whitespace-pre-wrap text-xs" style={{ color: "var(--pl-text)" }}>
+          <p className="mt-1.5 whitespace-pre-wrap text-caption" style={{ color: "var(--pl-text)" }}>
             {shareMessage}
           </p>
         </div>
@@ -392,17 +390,17 @@ export function QrDialog({
           <img
             src={qrData}
             alt={`QR code for ${storeUrl}`}
-            className="h-52 w-52 rounded-2xl border border-navy-100"
+            className="h-52 w-52 rounded-xl border border-neutral-200"
           />
         ) : (
-          <div className="flex h-52 w-52 items-center justify-center rounded-2xl bg-navy-50">
-            <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-navy-200 border-t-navy-800" />
+          <div className="flex h-52 w-52 items-center justify-center rounded-xl bg-neutral-50">
+            <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-neutral-300 border-t-navy-800" />
           </div>
         )}
-        <p className="mt-4 break-all text-center text-[13px] font-medium text-navy-800">
+        <p className="mt-4 break-all text-center text-caption font-medium text-navy-800">
           {storeUrl}
         </p>
-        <p className="mt-1 text-center text-xs text-ink-muted">
+        <p className="mt-1 text-center text-caption text-ink-muted">
           Print this on flyers, packaging or business cards.
         </p>
         {qrData && (
@@ -470,16 +468,17 @@ export function ProductViewModal({
             />
           ) : (
             <span
-              className="flex h-full items-center justify-center font-heading text-7xl"
+              className="flex h-full items-center justify-center font-heading text-display font-semibold"
               style={{ color: "var(--pl-muted)" }}
+              aria-hidden="true"
             >
-              {product.type === "SERVICE" ? "✦" : "◆"}
+              {product.type === "SERVICE" ? <Tag className="h-10 w-10" /> : initialsOf(product.name)}
             </span>
           )}
         </div>
         <div className="flex flex-col p-6">
           <p
-            className="text-[11px] font-semibold uppercase tracking-wider"
+            className="text-micro font-semibold uppercase tracking-wider"
             style={{ color: "var(--pl-muted)" }}
           >
             {product.type === "SERVICE" ? "Service" : "Product"}
@@ -500,14 +499,14 @@ export function ProductViewModal({
               {formatNaira(hasSale ? product.salePriceKobo! : product.priceKobo)}
             </span>
             {hasSale && (
-              <span className="text-sm line-through" style={{ color: "var(--pl-muted)" }}>
+              <span className="text-body line-through" style={{ color: "var(--pl-muted)" }}>
                 {formatNaira(product.priceKobo)}
               </span>
             )}
           </div>
           {product.description && (
             <p
-              className="mt-3 text-sm leading-relaxed"
+              className="mt-3 text-body leading-relaxed"
               style={{ color: "var(--pl-text-secondary)" }}
             >
               {product.description}
@@ -540,9 +539,9 @@ export function ProductViewModal({
               </button>
             </div>
             <Button
-              variant="gold"
+              variant="primary"
               size="lg"
-              className="flex-1"
+              className="flex-1 hover:brightness-95"
               style={{ background: "var(--pl-primary)", color: "var(--pl-on-primary)" }}
               onClick={() => {
                 for (let i = 0; i < qty; i++) cart.add(product.id);

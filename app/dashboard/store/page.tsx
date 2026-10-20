@@ -6,7 +6,6 @@ import {
   Check,
   Upload,
   X,
-  QrCode,
   Share2,
   Link2,
   Download,
@@ -18,11 +17,10 @@ import {
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Field } from "@/components/ui/input";
+import { Field, Textarea } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { ACCENT_COLORS, THEMES, type Theme } from "@/lib/themes";
 import { getTheme } from "@/lib/themes";
-import { isPaystackConfigured } from "@/lib/paystack";
 
 interface BusinessData {
   id: string;
@@ -156,8 +154,8 @@ export default function StoreCustomizePage() {
     return (
       <DashboardLayout userName={null}>
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-56 rounded-lg bg-navy-100" />
-          <div className="h-72 rounded-2xl bg-navy-100" />
+          <div className="h-8 w-56 rounded-lg bg-neutral-100" />
+          <div className="h-72 rounded-xl bg-neutral-100" />
         </div>
       </DashboardLayout>
     );
@@ -167,10 +165,10 @@ export default function StoreCustomizePage() {
     <DashboardLayout userName={null} storeSlug={business.slug}>
       <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+          <h1 className="font-heading text-headline font-semibold text-ink">
             Customize Store
           </h1>
-          <p className="mt-1 text-[13px] text-ink-muted">
+          <p className="mt-1 text-caption text-ink-muted">
             Watch your storefront update live as you make changes.
           </p>
         </div>
@@ -180,7 +178,7 @@ export default function StoreCustomizePage() {
               View live store
             </Button>
           </a>
-          <Button onClick={() => void save()} loading={saving} disabled={!dirty && saving === false ? false : false} className={dirty ? "" : "opacity-60"}>
+          <Button onClick={() => void save()} loading={saving} disabled={!dirty} className={dirty ? "" : "opacity-60"}>
             <Check className="h-4 w-4" />
             Save changes
           </Button>
@@ -191,8 +189,8 @@ export default function StoreCustomizePage() {
         {/* Controls */}
         <div className="space-y-5 lg:col-span-2">
           {/* Theme */}
-          <div className="rounded-3xl border border-navy-100 bg-white p-6 shadow-soft">
-            <p className="flex items-center gap-2 text-[13px] font-medium text-ink-secondary">
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-soft">
+            <p className="flex items-center gap-2 text-caption font-medium text-ink-secondary">
               <Palette className="h-4 w-4" />
               Theme
             </p>
@@ -213,10 +211,10 @@ export default function StoreCustomizePage() {
                       setThemeId(t.id);
                       markDirty();
                     }}
-                    className={`rounded-2xl border-2 p-3 text-left transition-all ${
+                    className={`rounded-lg border-2 p-3 text-left transition-colors ${
                       themeId === t.id
                         ? "border-navy-800 shadow-soft"
-                        : "border-navy-100 hover:border-navy-300"
+                        : "border-neutral-200 hover:border-neutral-300"
                     } ${!accessible ? "opacity-70" : ""}`}
                   >
                     <div className="flex h-12 overflow-hidden rounded-lg">
@@ -224,10 +222,10 @@ export default function StoreCustomizePage() {
                       <span className="flex-1" style={{ background: t.tokens.primary }} />
                       <span className="w-4" style={{ background: t.tokens.accent }} />
                     </div>
-                    <p className="mt-2 flex items-center justify-between text-xs font-medium text-ink">
+                    <p className="mt-2 flex items-center justify-between text-caption font-medium text-ink">
                       {t.name}
                       {t.tier === "pro" && (
-                        <span className="rounded bg-gold-faint px-1.5 py-0.5 text-[9px] font-semibold text-gold-deep">
+                        <span className="rounded bg-gold-faint px-1.5 py-0.5 text-micro font-semibold text-gold-deep">
                           PRO
                         </span>
                       )}
@@ -239,8 +237,8 @@ export default function StoreCustomizePage() {
           </div>
 
           {/* Accent */}
-          <div className="rounded-3xl border border-navy-100 bg-white p-6 shadow-soft">
-            <p className="text-[13px] font-medium text-ink-secondary">Accent color</p>
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-soft">
+            <p className="text-caption font-medium text-ink-secondary">Accent color</p>
             <div className="mt-4 flex flex-wrap gap-2.5">
               {ACCENT_COLORS.map((c) => (
                 <button
@@ -253,7 +251,7 @@ export default function StoreCustomizePage() {
                     setAccent(c.value);
                     markDirty();
                   }}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full transition-transform hover:scale-110 ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-full transition-shadow ${
                     accent === c.value ? "ring-2 ring-navy-800 ring-offset-2" : ""
                   }`}
                   style={{ background: c.value }}
@@ -265,7 +263,7 @@ export default function StoreCustomizePage() {
               ))}
             </div>
             {!isPro && (
-              <p className="mt-3 text-xs text-ink-muted">
+              <p className="mt-3 text-caption text-ink-muted">
                 <a href="/dashboard/billing" className="font-medium text-navy-700 underline">
                   Upgrade to Pro
                 </a>{" "}
@@ -275,13 +273,13 @@ export default function StoreCustomizePage() {
           </div>
 
           {/* Branding + hero */}
-          <div className="rounded-3xl border border-navy-100 bg-white p-6 shadow-soft">
-            <p className="text-[13px] font-medium text-ink-secondary">Branding & banner</p>
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-soft">
+            <p className="text-caption font-medium text-ink-secondary">Branding & banner</p>
             <div className="mt-4 space-y-4">
-              <label className="flex items-center justify-between rounded-xl border border-navy-100 px-4 py-3">
+              <label className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3">
                 <span>
-                  <span className="block text-sm font-medium text-ink">PRICELIST branding</span>
-                  <span className="text-xs text-ink-muted">
+                  <span className="block text-body font-medium text-ink">PRICELIST branding</span>
+                  <span className="text-caption text-ink-muted">
                     {isPro ? "Show 'Powered by PRICELIST' on your store" : "Free plan shows PRICELIST branding"}
                   </span>
                 </span>
@@ -300,7 +298,7 @@ export default function StoreCustomizePage() {
               </label>
 
               <div>
-                <p className="mb-2 text-sm text-ink">Hero / banner image</p>
+                <p className="mb-2 text-body text-ink">Hero / banner image</p>
                 {heroUrl ? (
                   <div className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -326,14 +324,14 @@ export default function StoreCustomizePage() {
                       }
                       heroInputRef.current?.click();
                     }}
-                    className="flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-navy-200 text-ink-muted transition-colors hover:border-navy-400"
+                    className="flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-neutral-300 text-ink-muted transition-colors hover:border-navy-400"
                   >
                     {uploadingHero ? (
-                      <span className="h-6 w-6 animate-spin rounded-full border-2 border-navy-200 border-t-navy-800" />
+                      <span className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-navy-800" />
                     ) : (
                       <Upload className="h-5 w-5" />
                     )}
-                    <span className="text-xs font-medium">
+                    <span className="text-caption font-medium">
                       {isPro ? "Upload banner" : "Pro feature"}
                     </span>
                   </button>
@@ -352,23 +350,26 @@ export default function StoreCustomizePage() {
               </div>
 
               <Field label="Store description" htmlFor="store-desc">
-                <textarea
+                <Textarea
                   id="store-desc"
-                  className="flex min-h-[90px] w-full rounded-xl border border-navy-200 bg-white px-3.5 py-3 text-sm text-ink placeholder:text-ink-muted focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
+                  rows={3}
+                  className="min-h-[90px]"
                   value={description}
                   maxLength={600}
                   onChange={(e) => { setDescription(e.target.value); markDirty(); }}
+                  placeholder="One or two lines about what you sell. Customers see this at the top of your store."
                 />
               </Field>
             </div>
           </div>
 
           {/* QR + share */}
-          <div className="rounded-3xl border border-navy-100 bg-white p-6 shadow-soft">
-            <p className="text-[13px] font-medium text-ink-secondary">Share & QR code</p>
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-soft">
+            <p className="text-caption font-medium text-ink-secondary">Share & QR code</p>
             {qr && (
               <div className="mt-4 flex items-center gap-4">
-                <img src={qr} alt="Store QR code" className="h-24 w-24 rounded-xl border border-navy-100" />
+                {/* eslint-disable-next-line @next/next/no-img-element -- data URL, no optimizer involved */}
+                <img src={qr} alt="Store QR code" className="h-24 w-24 rounded-xl border border-neutral-200" />
                 <div className="min-w-0 flex-1 space-y-2">
                   <Button
                     variant="outline"
@@ -397,7 +398,7 @@ export default function StoreCustomizePage() {
               </div>
             )}
             {shareOpen && (
-              <div className="mt-4 space-y-2 rounded-xl border border-navy-100 p-3 animate-fade-in">
+              <div className="mt-4 space-y-2 rounded-xl border border-neutral-200 p-3 animate-fade-in">
                 <ShareButtons storeUrl={storeUrl} businessName={business.name} />
               </div>
             )}
@@ -406,7 +407,7 @@ export default function StoreCustomizePage() {
                 void navigator.clipboard?.writeText(storeUrl);
                 toast.success("Link copied", storeUrl);
               }}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-navy-200 px-4 py-2.5 text-[13px] font-medium text-navy-800 transition-colors hover:bg-navy-50"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-300 px-4 py-2.5 text-caption font-medium text-navy-800 transition-colors hover:bg-neutral-50"
             >
               <Link2 className="h-3.5 w-3.5" />
               Copy store link
@@ -418,8 +419,8 @@ export default function StoreCustomizePage() {
         <div className="lg:col-span-3">
           <div className="sticky top-6">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-[13px] font-medium text-ink-secondary">Live preview</p>
-              <div className="flex rounded-xl border border-navy-100 bg-white p-1">
+              <p className="text-caption font-medium text-ink-secondary">Live preview</p>
+              <div className="flex rounded-xl border border-neutral-200 bg-white p-1">
                 {([
                   ["desktop", Monitor],
                   ["tablet", Tablet],
@@ -439,7 +440,7 @@ export default function StoreCustomizePage() {
               </div>
             </div>
             <div
-              className={`mx-auto overflow-hidden rounded-3xl border border-navy-200 bg-white shadow-lift transition-all duration-300 ${
+              className={`mx-auto overflow-hidden rounded-xl border border-neutral-300 bg-white shadow-lift transition-all duration-300 ${
                 previewMode === "mobile"
                   ? "max-w-[340px]"
                   : previewMode === "tablet"
@@ -457,7 +458,7 @@ export default function StoreCustomizePage() {
               />
             </div>
             {!isPro && (
-              <p className="mt-3 flex items-center gap-1.5 text-xs text-ink-muted">
+              <p className="mt-3 flex items-center gap-1.5 text-caption text-ink-muted">
                 <CreditCard className="h-3.5 w-3.5" />
                 Upgrade to Pro for premium themes, accent colors, banners and
                 branding removal.
@@ -471,7 +472,7 @@ export default function StoreCustomizePage() {
 }
 
 function ShareButtons({ storeUrl, businessName }: { storeUrl: string; businessName: string }) {
-  const message = `Check out my products and prices on PRICELIST 👇\n${storeUrl}`;
+  const message = `Take a look at my price list — ${storeUrl}`;
   const wa = `https://wa.me/?text=${encodeURIComponent(message)}`;
   const fb = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(storeUrl)}`;
   const x = `https://twitter.com/intent/tweet?url=${encodeURIComponent(storeUrl)}&text=${encodeURIComponent(businessName)}`;
@@ -487,7 +488,7 @@ function ShareButtons({ storeUrl, businessName }: { storeUrl: string; businessNa
           href={href as string}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-ink transition-colors hover:bg-navy-50"
+          className="flex items-center gap-2 rounded-lg px-3 py-2 text-caption font-medium text-ink transition-colors hover:bg-neutral-50"
         >
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: color as string }} />
           Share on {label}
@@ -539,20 +540,20 @@ function StorefrontPreview({
           <img src={business.logoUrl} alt="" className="h-10 w-10 rounded-xl object-cover" />
         ) : (
           <span
-            className="flex h-10 w-10 items-center justify-center rounded-xl font-heading text-sm font-bold"
+            className="flex h-10 w-10 items-center justify-center rounded-xl font-heading text-body font-bold"
             style={{ background: t.primary, color: t.onPrimary }}
           >
             {business.name.slice(0, 2).toUpperCase()}
           </span>
         )}
         <div className="min-w-0">
-          <p className={`truncate text-[15px] font-semibold ${fontClass}`}>{business.name}</p>
-          <p className="truncate text-xs" style={{ color: t.muted }}>
+          <p className={`truncate text-title font-semibold ${fontClass}`}>{business.name}</p>
+          <p className="truncate text-caption" style={{ color: t.muted }}>
             Storefront preview
           </p>
         </div>
         <span
-          className="ml-auto rounded-full px-3 py-1.5 text-[11px] font-semibold"
+          className="ml-auto rounded-full px-3 py-1.5 text-micro font-semibold"
           style={{ background: t.primary, color: t.onPrimary }}
         >
           WhatsApp
@@ -568,7 +569,7 @@ function StorefrontPreview({
 
       <div className="px-5 py-5">
         <p className={`text-lg font-semibold ${fontClass}`}>Welcome to {business.name}</p>
-        <p className="mt-1 text-[13px] leading-relaxed" style={{ color: t.textSecondary }}>
+        <p className="mt-1 text-caption leading-relaxed" style={{ color: t.textSecondary }}>
           {description || "Your store description appears here. Add products to start selling."}
         </p>
 
@@ -576,11 +577,17 @@ function StorefrontPreview({
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="overflow-hidden rounded-2xl border"
+              className="overflow-hidden rounded-lg border"
               style={{ borderColor: t.border, background: t.surface }}
             >
-              <div className="flex aspect-square items-center justify-center" style={{ background: t.surfaceAlt }}>
-                <span className="text-2xl" style={{ color: t.muted }}>◆</span>
+              <div
+                className="flex aspect-square items-center justify-center"
+                style={{ background: t.surfaceAlt }}
+              >
+                <span
+                  className="block h-10 w-10 rounded-md"
+                  style={{ background: t.border, opacity: 0.7 }}
+                />
               </div>
               <div className="space-y-1.5 p-3">
                 <p className="h-2.5 w-3/4 rounded" style={{ background: t.border }} />
@@ -598,11 +605,11 @@ function StorefrontPreview({
         className="mt-2 flex items-center justify-between border-t px-5 py-3"
         style={{ borderColor: t.border, background: t.surface }}
       >
-        <span className="text-xs" style={{ color: t.muted }}>
+        <span className="text-caption" style={{ color: t.muted }}>
           {showBranding ? "Powered by PRICELIST" : ""}
         </span>
-        <span className="text-xs font-semibold" style={{ color: t.primary }}>
-          3 items — ₦85,000
+        <span className="text-caption" style={{ color: t.muted }}>
+          Your products and order bar appear here
         </span>
       </div>
     </div>
@@ -617,6 +624,3 @@ function readFile(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
-
-void QrCode;
-void isPaystackConfigured;

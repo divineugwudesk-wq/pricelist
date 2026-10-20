@@ -1,10 +1,16 @@
-import { forwardRef, type InputHTMLAttributes, type TextareaHTMLAttributes, type SelectHTMLAttributes } from "react";
+import {
+  forwardRef,
+  type InputHTMLAttributes,
+  type TextareaHTMLAttributes,
+  type SelectHTMLAttributes,
+} from "react";
 import { cn } from "@/lib/utils";
 
 const base =
-  "flex w-full rounded-xl border border-navy-200 bg-white px-3.5 text-sm text-ink placeholder:text-ink-muted transition-colors duration-150 " +
-  "focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20 " +
-  "disabled:cursor-not-allowed disabled:bg-navy-50 disabled:opacity-60";
+  "flex w-full rounded-md border border-neutral-300 bg-white px-3 text-body text-ink " +
+  "placeholder:text-ink-muted transition-colors duration-150 " +
+  "focus:border-navy-600 focus:outline-none " +
+  "disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-ink-muted";
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className, ...props }, ref) => (
@@ -17,7 +23,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
   ({ className, ...props }, ref) => (
     <textarea
       ref={ref}
-      className={cn(base, "min-h-[110px] py-3 resize-y", className)}
+      className={cn(base, "min-h-[110px] resize-y py-2.5", className)}
       {...props}
     />
   ),
@@ -26,7 +32,7 @@ Textarea.displayName = "Textarea";
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
   ({ className, children, ...props }, ref) => (
-    <select ref={ref} className={cn(base, "h-11 appearance-none pr-9", className)} {...props}>
+    <select ref={ref} className={cn(base, "h-11 pr-8", className)} {...props}>
       {children}
     </select>
   ),
@@ -50,17 +56,17 @@ export function Field({
     <div className="space-y-1.5">
       <label
         htmlFor={htmlFor}
-        className="block text-[13px] font-medium text-ink-secondary"
+        className="block text-caption font-medium text-ink-secondary"
       >
         {label}
       </label>
       {children}
       {error ? (
-        <p className="text-xs text-danger" role="alert">
+        <p className="text-caption text-danger" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-xs text-ink-muted">{hint}</p>
+        <p className="text-caption text-ink-muted">{hint}</p>
       ) : null}
     </div>
   );

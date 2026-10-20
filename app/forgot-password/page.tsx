@@ -53,19 +53,19 @@ export default function ForgotPasswordPage() {
       }
     >
       {done ? (
-        <div className="rounded-2xl bg-navy-50 p-5 text-center">
-          <p className="text-sm font-medium text-ink">
+        <div className="rounded-xl bg-neutral-50 p-5 text-center">
+          <p className="text-body font-medium text-ink">
             If an account exists for <span className="font-semibold">{email}</span>, a
             reset link is on its way.
           </p>
           {devLink && (
-            <div className="mt-4 rounded-xl border border-dashed border-navy-300 bg-white p-3">
-              <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-ink-muted">
+            <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-white p-3">
+              <p className="mb-2 text-micro font-medium uppercase tracking-wider text-ink-muted">
                 Development mode — no email server configured
               </p>
               <Link
                 href={devLink}
-                className="break-all text-[13px] font-medium text-navy-700 underline hover:text-navy-900"
+                className="break-all text-caption font-medium text-navy-700 underline hover:text-navy-900"
               >
                 Open reset link
               </Link>

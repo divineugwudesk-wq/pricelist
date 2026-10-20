@@ -22,16 +22,18 @@ export const Switch = forwardRef<
     disabled={disabled}
     onClick={() => onChange(!checked)}
     className={cn(
-      "relative inline-flex shrink-0 items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500/40 disabled:opacity-50",
-      checked ? "bg-navy-800" : "bg-navy-200",
+      "relative inline-flex shrink-0 items-center rounded-full transition-colors duration-150",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500/40",
+      "disabled:opacity-50",
+      checked ? "bg-navy-800" : "bg-neutral-300",
       small ? "h-5 w-9" : "h-6 w-11",
     )}
   >
     <span
       className={cn(
-        "inline-block transform rounded-full bg-white shadow transition-transform duration-200",
-        small ? "h-3.5 w-3.5" : "h-4.5 w-4.5",
-        checked ? (small ? "translate-x-4.5" : "translate-x-6") : "translate-x-0.5",
+        "inline-block transform rounded-full bg-white shadow-sm transition-transform duration-150",
+        small ? "h-4 w-4" : "h-5 w-5",
+        checked ? (small ? "translate-x-4" : "translate-x-6") : "translate-x-0.5",
       )}
     />
   </button>

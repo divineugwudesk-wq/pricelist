@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
-import { PLANS, PLAN_ORDER } from "@/lib/plans";
+import { PLANS, PLAN_ORDER } from "@/lib/plan-data";
 import type { Plan } from "@/lib/db-types";
 import { formatNaira } from "@/lib/money";
 import { formatDate as fmtDate } from "@/lib/utils";
 import type { SubscriptionStatus } from "@/lib/db-types";
-import { Check, CreditCard, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, CreditCard, ShieldCheck } from "lucide-react";
 
 interface SubscriptionData {
   subscription: {
@@ -154,7 +154,7 @@ export default function BillingPage() {
     return (
       <DashboardLayout userName={null}>
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-40 rounded-lg bg-navy-100" />
+          <div className="h-8 w-40 rounded-lg bg-neutral-100" />
           <div className="grid grid-cols-3 gap-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-40" />
@@ -172,10 +172,10 @@ export default function BillingPage() {
   return (
     <DashboardLayout userName={null}>
       <div className="mb-7">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+        <h1 className="font-heading text-headline font-semibold text-ink">
           Billing
         </h1>
-        <p className="mt-1 text-[13px] text-ink-muted">
+        <p className="mt-1 text-caption text-ink-muted">
           Manage your plan and subscription. Secure payments by Paystack.
         </p>
       </div>
@@ -184,20 +184,20 @@ export default function BillingPage() {
       <div className="mb-8 grid gap-4 lg:grid-cols-3">
         <Card>
           <CardBody className="py-6">
-            <p className="text-[13px] font-medium text-ink-muted">Current plan</p>
+            <p className="text-caption font-medium text-ink-muted">Current plan</p>
             <div className="mt-2 flex items-center gap-2">
-              <p className="font-heading text-2xl font-bold text-navy-900">
+              <p className="font-heading text-headline font-semibold text-ink">
                 {PLANS[currentPlan].name}
               </p>
-              <Badge tone={currentPlan === "FREE" ? "muted" : "gold"}>
+              <Badge tone={currentPlan === "FREE" ? "neutral" : "gold"}>
                 {sub ? STATUS_LABELS[sub.status] : "Active"}
               </Badge>
             </div>
-            <p className="mt-1 text-sm text-ink-secondary">
+            <p className="mt-1 text-body text-ink-secondary">
               {formatNaira(PLANS[currentPlan].priceKobo)}/month
             </p>
             {sub?.renewalDate && (
-              <p className="mt-2 text-xs text-ink-muted">
+              <p className="mt-2 text-caption text-ink-muted">
                 Renews {fmtDate(sub.renewalDate)}
               </p>
             )}
@@ -205,8 +205,8 @@ export default function BillingPage() {
         </Card>
         <Card>
           <CardBody className="py-6">
-            <p className="text-[13px] font-medium text-ink-muted">Product usage</p>
-            <p className="mt-2 font-heading text-2xl font-bold text-navy-900">
+            <p className="text-caption font-medium text-ink-muted">Product usage</p>
+            <p className="mt-2 font-heading text-headline font-semibold text-ink">
               {usage?.products ?? 0}
               <span className="text-base font-medium text-ink-muted">
                 {" "}
@@ -214,7 +214,7 @@ export default function BillingPage() {
               </span>
             </p>
             {usage?.limit !== null && usage?.limit !== undefined && (
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-navy-100">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-neutral-100">
                 <div
                   className={`h-full rounded-full ${
                     (usage?.products ?? 0) >= (usage?.limit ?? 0) ? "bg-gold" : "bg-navy-800"
@@ -225,21 +225,21 @@ export default function BillingPage() {
                 />
               </div>
             )}
-            <p className="mt-2 text-xs text-ink-muted">
+            <p className="mt-2 text-caption text-ink-muted">
               {usage?.categories ?? 0} categories used
             </p>
           </CardBody>
         </Card>
         <Card>
           <CardBody className="py-6">
-            <p className="text-[13px] font-medium text-ink-muted">Payment</p>
+            <p className="text-caption font-medium text-ink-muted">Payment</p>
             <div className="mt-2 flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-navy-700" />
-              <p className="text-sm font-medium text-ink">
+              <p className="text-body font-medium text-ink">
                 {data.paystackConfigured ? "Paystack" : "Development mode"}
               </p>
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-ink-muted">
+            <p className="mt-1.5 text-caption leading-relaxed text-ink-muted">
               {data.paystackConfigured
                 ? "Payments are processed securely by Paystack. We never see your card details."
                 : "Paystack is not configured. Plan changes apply locally for development."}
@@ -261,31 +261,29 @@ export default function BillingPage() {
           return (
             <Card
               key={planId}
-              className={`relative flex flex-col ${featured && !isCurrent ? "border-navy-900 shadow-lift" : ""}`}
+              className={`flex flex-col ${featured && !isCurrent ? "border-navy-700" : ""}`}
             >
-              {plan.badge && !isCurrent && (
-                <span
-                  className={`absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[11px] font-semibold ${
-                    featured ? "bg-navy-900 text-white" : "bg-gold-faint text-gold-deep"
-                  }`}
-                >
-                  {plan.badge}
-                </span>
-              )}
               <CardBody className="flex flex-1 flex-col py-6">
-                <div className="flex items-center justify-between">
-                  <p className="font-heading text-lg font-semibold text-ink">{plan.name}</p>
-                  {isCurrent && <Badge tone="success" dot>Current</Badge>}
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-heading text-lead font-semibold text-ink">{plan.name}</p>
+                  {isCurrent ? (
+                    <Badge tone="success" dot>
+                      Current
+                    </Badge>
+                  ) : plan.badge ? (
+                    <Badge tone={featured ? "gold" : "neutral"}>{plan.badge}</Badge>
+                  ) : null}
                 </div>
-                <p className="mt-3">
-                  <span className="font-heading text-3xl font-bold tracking-tight text-navy-900">
+                <p className="mt-1 text-caption text-ink-muted">{plan.tagline}</p>
+                <p className="mt-4">
+                  <span className="font-heading text-display font-semibold text-ink">
                     {formatNaira(plan.priceKobo)}
                   </span>
-                  <span className="text-sm text-ink-muted">/month</span>
+                  <span className="text-caption text-ink-muted">/month</span>
                 </p>
                 <ul className="mt-5 flex-1 space-y-2.5">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2.5 text-[13px] text-ink-secondary">
+                    <li key={feature} className="flex items-start gap-2.5 text-caption text-ink-secondary">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                       {feature}
                     </li>
@@ -299,13 +297,12 @@ export default function BillingPage() {
                   )
                 ) : accessible ? (
                   <Button
-                    variant={featured ? "gold" : "primary"}
+                    variant="primary"
                     className="mt-6 w-full"
                     size="lg"
                     loading={checkingOut === planId}
                     onClick={() => void upgrade(planId)}
                   >
-                    <Sparkles className="h-4 w-4" />
                     Upgrade to {plan.name}
                   </Button>
                 ) : (
@@ -319,11 +316,11 @@ export default function BillingPage() {
         })}
       </div>
 
-      <div className="mt-8 flex items-start gap-3 rounded-2xl border border-navy-100 bg-white p-5">
+      <div className="mt-8 flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-5">
         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
         <div>
-          <p className="text-sm font-medium text-ink">Secure payments</p>
-          <p className="mt-0.5 text-[13px] leading-relaxed text-ink-muted">
+          <p className="text-body font-medium text-ink">Secure payments</p>
+          <p className="mt-0.5 text-caption leading-relaxed text-ink-muted">
             Subscriptions are billed in NGN through Paystack — the same payment
             infrastructure used by Nigerian banks. Your card details never touch
             PRICELIST servers. Cancel anytime; your plan stays active until the

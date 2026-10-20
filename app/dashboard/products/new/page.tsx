@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Image as ImageIcon,
   Upload,
-  Sparkles,
   Check,
   ArrowLeft,
   Star,
@@ -220,8 +219,8 @@ export default function ProductFormPage() {
     return (
       <DashboardLayout userName={null}>
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 rounded-lg bg-navy-100" />
-          <div className="h-64 rounded-2xl bg-navy-100" />
+          <div className="h-8 w-48 rounded-lg bg-neutral-100" />
+          <div className="h-64 rounded-xl bg-neutral-100" />
         </div>
       </DashboardLayout>
     );
@@ -231,32 +230,34 @@ export default function ProductFormPage() {
     <DashboardLayout userName={null}>
       <button
         onClick={() => router.push("/dashboard/products")}
-        className="mb-5 flex items-center gap-1.5 text-[13px] font-medium text-ink-secondary transition-colors hover:text-navy-900"
+        className="mb-5 flex items-center gap-1.5 text-caption font-medium text-ink-secondary transition-colors hover:text-navy-900"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to products
       </button>
 
       <div className="mb-7">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+        <h1 className="font-heading text-headline font-semibold text-ink">
           {isEdit ? "Edit product" : "Add a product"}
         </h1>
-        <p className="mt-1 text-[13px] text-ink-muted">
-          {isEdit ? "Update details, images and pricing." : "Beautiful cards, clear prices — that's the magic."}
+        <p className="mt-1 text-caption text-ink-muted">
+          {isEdit
+            ? "Update the details, photo and price."
+            : "Name it, price it, add a photo. It goes live on your storefront straight away."}
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Image */}
         <div className="space-y-4">
-          <div className="rounded-3xl border border-navy-100 bg-white p-5 shadow-soft">
-            <p className="text-[13px] font-medium text-ink-secondary">Product image</p>
+          <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-soft">
+            <p className="text-caption font-medium text-ink-secondary">Product image</p>
             <button
               onClick={() => fileRef.current?.click()}
-              className={`mt-3 flex aspect-square w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border-2 border-dashed transition-colors ${
+              className={`mt-3 flex aspect-square w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
                 imagePreview
                   ? "border-transparent"
-                  : "border-navy-200 hover:border-navy-400 hover:bg-navy-50/50"
+                  : "border-neutral-300 hover:border-navy-400 hover:bg-neutral-50/50"
               }`}
             >
               {imagePreview ? (
@@ -264,16 +265,16 @@ export default function ProductFormPage() {
                 <img src={imagePreview} alt="Product" className="h-full w-full object-cover" />
               ) : uploading ? (
                 <>
-                  <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-navy-200 border-t-navy-800" />
-                  <span className="text-sm text-ink-muted">Uploading…</span>
+                  <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-neutral-300 border-t-navy-800" />
+                  <span className="text-body text-ink-muted">Uploading…</span>
                 </>
               ) : (
                 <>
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-navy-50 text-navy-600">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-neutral-50 text-navy-600">
                     <ImageIcon className="h-5 w-5" />
                   </span>
-                  <span className="text-sm font-medium text-ink">Upload image</span>
-                  <span className="text-xs text-ink-muted">PNG, JPG or WEBP · max 5 MB</span>
+                  <span className="text-body font-medium text-ink">Upload image</span>
+                  <span className="text-caption text-ink-muted">PNG, JPG or WEBP · max 5 MB</span>
                 </>
               )}
             </button>
@@ -291,7 +292,7 @@ export default function ProductFormPage() {
             {imageUrl && (
               <button
                 onClick={() => { setImageUrl(null); setImagePreview(null); }}
-                className="mt-2 flex items-center gap-1.5 text-xs font-medium text-danger"
+                className="mt-2 flex items-center gap-1.5 text-caption font-medium text-danger"
               >
                 <X className="h-3.5 w-3.5" />
                 Remove image
@@ -301,7 +302,7 @@ export default function ProductFormPage() {
         </div>
 
         {/* Details */}
-        <div className="rounded-3xl border border-navy-100 bg-white p-6 shadow-soft lg:col-span-2">
+        <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-soft lg:col-span-2">
           <div className="space-y-5">
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Product name" htmlFor="pf-name" error={errors.name}>
@@ -360,11 +361,11 @@ export default function ProductFormPage() {
             </div>
             {form.salePrice && parseNairaToKobo(form.salePrice) > 0 && (
               parseNairaToKobo(form.salePrice) >= parseNairaToKobo(form.price) ? (
-                <p className="-mt-2 rounded-xl bg-[#F9E9E9] px-3 py-2 text-[13px] text-danger">
+                <p className="-mt-2 rounded-xl bg-danger-soft px-3 py-2 text-caption text-danger">
                   Sale price must be lower than the regular price.
                 </p>
               ) : (
-                <p className="-mt-2 rounded-xl bg-[#E5F4EE] px-3 py-2 text-[13px] text-success">
+                <p className="-mt-2 rounded-xl bg-success-soft px-3 py-2 text-caption text-success">
                   Customers see <span className="font-semibold">{formatNaira(parseNairaToKobo(form.salePrice))}</span> instead of {formatNaira(parseNairaToKobo(form.price))}.
                 </p>
               )
@@ -373,7 +374,7 @@ export default function ProductFormPage() {
             <Field
               label="Description"
               htmlFor="pf-description"
-              hint="Shown on your storefront card."
+              hint="Shown on your storefront card. One or two lines is enough."
             >
               <Textarea
                 id="pf-description"
@@ -388,8 +389,7 @@ export default function ProductFormPage() {
               onClick={() => void generateDescription()}
               loading={describing}
             >
-              <Sparkles className="h-3.5 w-3.5 text-gold-deep" />
-              {form.description ? "Improve description" : "Generate description"}
+              {form.description ? "Rewrite description" : "Draft a description"}
             </Button>
 
             <div className="grid gap-5 sm:grid-cols-2">
@@ -402,8 +402,8 @@ export default function ProductFormPage() {
                 />
               </Field>
               <div className="flex flex-col justify-end gap-4 pb-1 sm:flex-row sm:items-center">
-                <label className="flex flex-1 items-center justify-between rounded-xl border border-navy-100 px-4 py-3">
-                  <span className="flex items-center gap-2 text-sm text-ink">
+                <label className="flex flex-1 items-center justify-between rounded-xl border border-neutral-200 px-4 py-3">
+                  <span className="flex items-center gap-2 text-body text-ink">
                     <Check className="h-4 w-4 text-success" />
                     Available
                   </span>
@@ -413,8 +413,8 @@ export default function ProductFormPage() {
                     label="Available"
                   />
                 </label>
-                <label className="flex flex-1 items-center justify-between rounded-xl border border-navy-100 px-4 py-3">
-                  <span className="flex items-center gap-2 text-sm text-ink">
+                <label className="flex flex-1 items-center justify-between rounded-xl border border-neutral-200 px-4 py-3">
+                  <span className="flex items-center gap-2 text-body text-ink">
                     <Star className="h-4 w-4 text-gold-deep" />
                     Featured
                   </span>
@@ -428,7 +428,7 @@ export default function ProductFormPage() {
             </div>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-navy-50 pt-5">
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-5">
             <Button variant="ghost" onClick={() => router.push("/dashboard/products")}>
               Cancel
             </Button>
@@ -443,18 +443,18 @@ export default function ProductFormPage() {
       {/* Plan limit dialog */}
       {limitError && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/50 p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-7 shadow-lift animate-scale-in">
+          <div className="w-full max-w-md rounded-xl bg-white p-7 shadow-lift animate-scale-in">
             <h3 className="font-heading text-lg font-semibold text-ink">
-              You've reached your plan limit
+              You&rsquo;ve reached your plan limit
             </h3>
-            <p className="mt-2 text-sm text-ink-secondary">{limitError.message}</p>
-            <div className="mt-4 rounded-2xl bg-navy-50 p-4 text-sm text-ink-secondary">
+            <p className="mt-2 text-body text-ink-secondary">{limitError.message}</p>
+            <div className="mt-4 rounded-lg bg-neutral-50 p-4 text-body text-ink-secondary">
               {limitError.upgradeTo === "PRO"
-                ? "Pro gives you unlimited products plus all premium themes and customization."
-                : "Starter gives you up to 50 products, product search, sale prices and analytics."}
+                ? "Pro gives you unlimited products and services, all seven store themes and your own accent colour."
+                : "Starter gives you up to 50 products and services, and 25 categories."}
             </div>
             <Button
-              variant="gold"
+              variant="primary"
               className="mt-5 w-full"
               size="lg"
               onClick={() => router.push("/dashboard/billing")}

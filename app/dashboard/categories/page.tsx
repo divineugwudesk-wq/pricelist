@@ -8,7 +8,6 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
-  GripVertical,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -117,17 +116,17 @@ export default function CategoriesPage() {
   return (
     <DashboardLayout userName={null}>
       <div className="mb-7">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+        <h1 className="font-heading text-headline font-semibold text-ink">
           Categories
         </h1>
-        <p className="mt-1 text-[13px] text-ink-muted">
+        <p className="mt-1 text-caption text-ink-muted">
           Organize your products — customers filter by category on your storefront.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-3xl border border-navy-100 bg-white p-6 shadow-soft lg:col-span-1">
-          <p className="text-[13px] font-medium text-ink-secondary">New category</p>
+        <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-soft lg:col-span-1">
+          <p className="text-caption font-medium text-ink-secondary">New category</p>
           <div className="mt-4 space-y-4">
             <Field label="Name" htmlFor="cat-name">
               <Input
@@ -145,7 +144,7 @@ export default function CategoriesPage() {
               Add category
             </Button>
             {limitNotice && (
-              <p className="rounded-xl bg-gold-faint px-3 py-2 text-[13px] text-gold-deep">
+              <p className="rounded-lg bg-warning-soft px-3 py-2 text-caption text-warning">
                 {limitNotice}{" "}
                 <a href="/dashboard/billing" className="font-semibold underline">
                   Upgrade plan
@@ -155,19 +154,19 @@ export default function CategoriesPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-navy-100 bg-white shadow-soft lg:col-span-2">
-          <div className="border-b border-navy-50 px-6 py-5">
-            <h3 className="font-heading text-[15px] font-semibold text-ink">
+        <div className="rounded-xl border border-neutral-200 bg-white shadow-soft lg:col-span-2">
+          <div className="border-b border-neutral-100 px-6 py-5">
+            <h3 className="font-heading text-title font-semibold text-ink">
               Your categories
             </h3>
-            <p className="mt-0.5 text-[13px] text-ink-muted">
-              Drag order controls the storefront order.
+            <p className="mt-0.5 text-caption text-ink-muted">
+              Use the arrows to set the order categories appear in on your storefront.
             </p>
           </div>
           {categories === null ? (
             <div className="space-y-2 p-6">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-12 animate-pulse rounded-xl bg-navy-100" />
+                <div key={i} className="h-12 animate-pulse rounded-xl bg-neutral-100" />
               ))}
             </div>
           ) : categories.length === 0 ? (
@@ -175,49 +174,48 @@ export default function CategoriesPage() {
               compact
               icon={<FolderOpen className="h-5 w-5" />}
               title="No categories yet"
-              description="Create categories like Sneakers, Shirts, New Arrivals to organize your store."
+              description="Start with a few — Sneakers, Shirts, Services. Customers use them to filter your list."
             />
           ) : (
-            <div className="divide-y divide-navy-50">
+            <div className="divide-y divide-neutral-100">
               {[...categories]
                 .sort((a, b) => a.sortOrder - b.sortOrder)
                 .map((c) => (
                   <div
                     key={c.id}
-                    className="flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-navy-50/40"
+                    className="flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-neutral-50/40"
                   >
-                    <GripVertical className="h-4 w-4 shrink-0 text-navy-200" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-ink">{c.name}</p>
-                      <p className="text-xs text-ink-muted">
+                      <p className="truncate text-body font-medium text-ink">{c.name}</p>
+                      <p className="text-caption text-ink-muted">
                         {c._count.products} product{c._count.products === 1 ? "" : "s"}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => void reorder(c.id, "up")}
-                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-navy-100"
+                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-neutral-100"
                         aria-label="Move up"
                       >
                         <ArrowUp className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => void reorder(c.id, "down")}
-                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-navy-100"
+                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-neutral-100"
                         aria-label="Move down"
                       >
                         <ArrowDown className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => { setEditing(c); setEditName(c.name); }}
-                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-navy-100"
+                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-neutral-100"
                         aria-label="Edit category"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => void remove(c.id)}
-                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-[#F9E9E9] hover:text-danger"
+                        className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-danger-soft hover:text-danger"
                         aria-label="Delete category"
                       >
                         <Trash2 className="h-3.5 w-3.5" />

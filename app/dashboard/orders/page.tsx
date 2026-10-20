@@ -45,10 +45,13 @@ interface Order {
   displayTotal: string;
 }
 
-const STATUS_TONES: Record<OrderStatus, "navy" | "gold" | "success" | "danger" | "muted"> = {
-  NEW: "navy",
-  CONTACTED: "gold",
-  CONFIRMED: "gold",
+const STATUS_TONES: Record<
+  OrderStatus,
+  "brand" | "warning" | "success" | "danger" | "neutral"
+> = {
+  NEW: "neutral",
+  CONTACTED: "warning",
+  CONFIRMED: "brand",
   COMPLETED: "success",
   CANCELLED: "danger",
 };
@@ -115,10 +118,10 @@ export default function OrdersPage() {
     <DashboardLayout userName={null}>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+          <h1 className="font-heading text-headline font-semibold text-ink">
             Orders
           </h1>
-          <p className="mt-1 text-[13px] text-ink-muted">
+          <p className="mt-1 text-caption text-ink-muted">
             Orders customers send through WhatsApp. PRICELIST records them —
             payment happens in your WhatsApp conversation.
           </p>
@@ -131,10 +134,10 @@ export default function OrdersPage() {
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
-            className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+            className={`rounded-full px-3.5 py-1.5 text-caption font-medium transition-colors ${
               statusFilter === s
                 ? "bg-navy-900 text-white"
-                : "border border-navy-200 bg-white text-ink-secondary hover:border-navy-400"
+                : "border border-neutral-300 bg-white text-ink-secondary hover:border-navy-400"
             }`}
           >
             {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()}
@@ -146,7 +149,7 @@ export default function OrdersPage() {
       {orders === null ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-navy-100" />
+            <div key={i} className="h-24 animate-pulse rounded-xl bg-neutral-100" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -160,27 +163,27 @@ export default function OrdersPage() {
           {filtered.map((order) => (
             <div
               key={order.id}
-              className="overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-soft transition-shadow hover:shadow-lift"
+              className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-soft transition-shadow hover:shadow-lift"
             >
               <button
                 onClick={() => setExpanded(expanded === order.id ? null : order.id)}
                 className="flex w-full items-center gap-4 px-5 py-4 text-left"
                 aria-expanded={expanded === order.id}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
-                  <ShoppingBag className="h-4.5 w-4.5" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-50 text-navy-700">
+                  <ShoppingBag className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-ink">
+                  <p className="truncate text-body font-semibold text-ink">
                     {order.customerName || "WhatsApp customer"}
                   </p>
-                  <p className="text-xs text-ink-muted">
+                  <p className="text-caption text-ink-muted">
                     {order.items.length} item{order.items.length === 1 ? "" : "s"} ·{" "}
                     {formatDateTime(order.createdAt)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-ink">{formatNaira(order.total)}</p>
+                  <p className="text-body font-semibold text-ink">{formatNaira(order.total)}</p>
                   <Badge tone={STATUS_TONES[order.status]} dot>
                     {order.status}
                   </Badge>
@@ -193,29 +196,29 @@ export default function OrdersPage() {
               </button>
 
               {expanded === order.id && (
-                <div className="border-t border-navy-50 px-5 py-4 animate-fade-in">
+                <div className="border-t border-neutral-100 px-5 py-4 animate-fade-in">
                   <div className="grid gap-5 sm:grid-cols-2">
                     {/* Items */}
                     <div>
-                      <p className="text-[13px] font-medium text-ink-secondary">YOUR ORDER</p>
-                      <div className="mt-2 divide-y divide-navy-50 rounded-xl border border-navy-50">
+                      <p className="text-caption font-medium text-ink-secondary">Your order</p>
+                      <div className="mt-2 divide-y divide-neutral-100 rounded-xl border border-neutral-100">
                         {order.items.map((item, i) => (
                           <div key={i} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
                             <div className="min-w-0">
-                              <p className="truncate text-[13px] font-medium text-ink">
+                              <p className="truncate text-caption font-medium text-ink">
                                 {item.productNameSnapshot}
                               </p>
-                              <p className="text-xs text-ink-muted">
+                              <p className="text-caption text-ink-muted">
                                 Qty {item.quantity} × {formatNaira(item.priceSnapshot)}
                               </p>
                             </div>
-                            <p className="text-[13px] font-semibold text-ink">
+                            <p className="text-caption font-semibold text-ink">
                               {formatNaira(item.subtotal)}
                             </p>
                           </div>
                         ))}
                       </div>
-                      <div className="mt-2 space-y-1 px-1 text-[13px]">
+                      <div className="mt-2 space-y-1 px-1 text-caption">
                         <div className="flex justify-between text-ink-secondary">
                           <span>Subtotal</span>
                           <span>{formatNaira(order.subtotal)}</span>
@@ -226,7 +229,7 @@ export default function OrdersPage() {
                             <span>-{formatNaira(order.discount)}</span>
                           </div>
                         )}
-                        <div className="flex justify-between border-t border-navy-50 pt-1.5 text-[15px] font-semibold text-ink">
+                        <div className="flex justify-between border-t border-neutral-100 pt-1.5 text-title font-semibold text-ink">
                           <span>Total</span>
                           <span>{formatNaira(order.total)}</span>
                         </div>
@@ -236,18 +239,18 @@ export default function OrdersPage() {
                     {/* Customer */}
                     <div className="space-y-4">
                       <div>
-                        <p className="text-[13px] font-medium text-ink-secondary">Customer</p>
+                        <p className="text-caption font-medium text-ink-secondary">Customer</p>
                         <div className="mt-2 space-y-2">
-                          <p className="flex items-center gap-2 text-sm text-ink">
+                          <p className="flex items-center gap-2 text-body text-ink">
                             <User className="h-4 w-4 text-ink-muted" />
                             {order.customerName || "Not provided"}
                           </p>
-                          <p className="flex items-center gap-2 text-sm text-ink">
+                          <p className="flex items-center gap-2 text-body text-ink">
                             <Phone className="h-4 w-4 text-ink-muted" />
                             {order.customerPhone || "Not provided"}
                           </p>
                           {order.customerNote && (
-                            <p className="flex items-start gap-2 rounded-xl bg-navy-50 p-3 text-sm text-ink-secondary">
+                            <p className="flex items-start gap-2 rounded-xl bg-neutral-50 p-3 text-body text-ink-secondary">
                               <StickyNote className="mt-0.5 h-4 w-4 shrink-0 text-gold-deep" />
                               {order.customerNote}
                             </p>
@@ -258,14 +261,14 @@ export default function OrdersPage() {
                       <div className="flex flex-wrap gap-2">
                         {order.customerPhone ? (
                           <Button variant="outline" size="sm" onClick={() => openWhatsApp(order)}>
-                            <MessageCircle className="h-3.5 w-3.5 text-[#075E54]" />
+                            <MessageCircle className="h-3.5 w-3.5 text-whatsapp" />
                             Reply on WhatsApp
                           </Button>
                         ) : null}
                       </div>
 
                       <div>
-                        <p className="mb-2 text-[13px] font-medium text-ink-secondary">
+                        <p className="mb-2 text-caption font-medium text-ink-secondary">
                           Update status
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -287,7 +290,7 @@ export default function OrdersPage() {
                           ))}
                         </div>
                         {order.status === "NEW" && (
-                          <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-muted">
+                          <p className="mt-2 flex items-center gap-1.5 text-caption text-ink-muted">
                             <AlertCircle className="h-3.5 w-3.5 text-warning" />
                             New order — confirm with the customer on WhatsApp.
                           </p>
@@ -303,10 +306,10 @@ export default function OrdersPage() {
       )}
 
       {/* Info banner */}
-      <div className="mt-6 flex items-start gap-3 rounded-2xl border border-navy-100 bg-white p-4">
-        <MessageCircle className="mt-0.5 h-4.5 w-4.5 shrink-0 text-[#075E54]" />
-        <p className="text-[13px] leading-relaxed text-ink-secondary">
-          PRICELIST records orders when customers tap "Order via WhatsApp". Payments are
+      <div className="mt-6 flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4">
+        <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-whatsapp" />
+        <p className="text-caption leading-relaxed text-ink-secondary">
+          PRICELIST records orders when customers tap &quot;Send order on WhatsApp&quot;. Payments are
           completed in your WhatsApp conversation — PRICELIST does not process payments.
           Mark orders as confirmed once the customer completes payment.
         </p>

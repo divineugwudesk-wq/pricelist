@@ -86,7 +86,7 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Field>
-        <div className="flex items-center justify-between text-[13px]">
+        <div className="flex items-center justify-between text-caption">
           <span className="text-ink-muted">Free plan · 5 products</span>
           <Link href="/forgot-password" className="font-medium text-navy-700 hover:text-navy-900">
             Forgot password?

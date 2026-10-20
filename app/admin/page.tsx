@@ -29,7 +29,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
 import { formatNaira, formatNairaCompact } from "@/lib/money";
 import { formatDateTime, timeAgo } from "@/lib/utils";
-import { categoryLabel } from "@/lib/storefront";
+import { categoryLabel } from "@/lib/storefront-utils";
 
 interface AdminStats {
   totalUsers: number;
@@ -204,7 +204,7 @@ export default function AdminPage() {
     return (
       <div className="min-h-screen bg-surface">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-          <div className="h-9 w-48 animate-pulse rounded-lg bg-navy-100" />
+          <div className="h-9 w-48 animate-pulse rounded-lg bg-neutral-100" />
           <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <Skeleton key={i} className="h-28" />
@@ -217,17 +217,17 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <header className="border-b border-navy-100 bg-white">
+      <header className="border-b border-neutral-200 bg-white">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <Logo size="md" />
             <Badge tone="gold" className="ml-1">Admin</Badge>
           </div>
           <div className="flex items-center gap-2">
-            <a href="/" className="text-[13px] font-medium text-ink-secondary hover:text-navy-900">
+            <a href="/" className="text-caption font-medium text-ink-secondary hover:text-navy-900">
               View site
             </a>
-            <a href="/dashboard" className="text-[13px] font-medium text-ink-secondary hover:text-navy-900">
+            <a href="/dashboard" className="text-caption font-medium text-ink-secondary hover:text-navy-900">
               Dashboard
             </a>
           </div>
@@ -237,10 +237,10 @@ export default function AdminPage() {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="font-heading text-2xl font-bold tracking-tight text-navy-900">
+            <h1 className="font-heading text-headline font-semibold text-ink">
               Platform overview
             </h1>
-            <p className="mt-1 text-[13px] text-ink-muted">
+            <p className="mt-1 text-caption text-ink-muted">
               Users, businesses, subscriptions and revenue across PRICELIST.
             </p>
           </div>
@@ -269,10 +269,10 @@ export default function AdminPage() {
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
+              className={`rounded-full px-4 py-2 text-caption font-medium transition-colors ${
                 tab === id
                   ? "bg-navy-900 text-white"
-                  : "border border-navy-200 bg-white text-ink-secondary hover:border-navy-400"
+                  : "border border-neutral-300 bg-white text-ink-secondary hover:border-navy-400"
               }`}
             >
               {label}
@@ -313,21 +313,21 @@ export default function AdminPage() {
               ) : users.length === 0 ? (
                 <EmptyState compact title="No users found" description="Try a different search." />
               ) : (
-                <div className="divide-y divide-navy-50">
+                <div className="divide-y divide-neutral-100">
                   {users.map((u) => (
                     <div key={u.id} className="flex items-center gap-4 px-4 py-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-50 font-heading text-sm font-bold text-navy-700">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-50 font-heading text-body font-bold text-navy-700">
                         {(u.name ?? u.email).slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-ink">
+                        <p className="truncate text-body font-medium text-ink">
                           {u.name ?? u.email}
                           {u.role === "ADMIN" && (
                             <Badge tone="gold" className="ml-2">Admin</Badge>
                           )}
                           {u.suspended && <Badge tone="danger" className="ml-2">Suspended</Badge>}
                         </p>
-                        <p className="truncate text-xs text-ink-muted">
+                        <p className="truncate text-caption text-ink-muted">
                           {u.email} · joined {timeAgo(u.createdAt)}
                           {u.business ? ` · ${u.business.name}` : " · no store yet"}
                           {u.subscription ? ` · ${u.subscription.plan}` : ""}
@@ -375,22 +375,22 @@ export default function AdminPage() {
               ) : businesses.length === 0 ? (
                 <EmptyState compact title="No businesses found" description="Try a different search." />
               ) : (
-                <div className="divide-y divide-navy-50">
+                <div className="divide-y divide-neutral-100">
                   {businesses.map((b) => (
                     <div key={b.id} className="flex items-center gap-4 px-4 py-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 font-heading text-sm font-bold text-navy-700">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-50 font-heading text-body font-bold text-navy-700">
                         {b.name.slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-ink">
+                        <p className="truncate text-body font-medium text-ink">
                           {b.name}
                           {b.suspended && <Badge tone="danger" className="ml-2">Suspended</Badge>}
                         </p>
-                        <p className="truncate text-xs text-ink-muted">
+                        <p className="truncate text-caption text-ink-muted">
                           /{b.slug} · {categoryLabel(b.category)} · {b.theme} theme ·{" "}
                           {b._count.products} products · {b._count.orders} orders
                         </p>
-                        <p className="truncate text-[11px] text-ink-muted">
+                        <p className="truncate text-micro text-ink-muted">
                           {b.user.email}
                         </p>
                       </div>
@@ -433,17 +433,17 @@ export default function AdminPage() {
               ) : subscriptions.length === 0 ? (
                 <EmptyState compact title="No paid subscriptions yet" description="Starter and Pro subscriptions appear here." />
               ) : (
-                <div className="divide-y divide-navy-50">
+                <div className="divide-y divide-neutral-100">
                   {subscriptions.map((s, i) => (
                     <div key={i} className="flex items-center gap-4 px-4 py-3">
-                      <Badge tone={s.plan === "PRO" ? "gold" : "navy"}>
+                      <Badge tone={s.plan === "PRO" ? "gold" : "brand"}>
                         {s.plan}
                       </Badge>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-ink">
+                        <p className="truncate text-body font-medium text-ink">
                           {s.user.name ?? s.user.email}
                         </p>
-                        <p className="truncate text-xs text-ink-muted">
+                        <p className="truncate text-caption text-ink-muted">
                           {s.user.email} · via {s.provider}
                         </p>
                       </div>
@@ -452,7 +452,7 @@ export default function AdminPage() {
                           {s.status}
                         </Badge>
                         {s.renewalDate && (
-                          <p className="mt-0.5 text-[11px] text-ink-muted">
+                          <p className="mt-0.5 text-micro text-ink-muted">
                             renews {formatDateTime(s.renewalDate)}
                           </p>
                         )}
@@ -479,18 +479,18 @@ export default function AdminPage() {
               ) : orders.length === 0 ? (
                 <EmptyState compact icon={<ShoppingBag className="h-5 w-5" />} title="No orders yet" description="Orders placed through WhatsApp appear here." />
               ) : (
-                <div className="divide-y divide-navy-50">
+                <div className="divide-y divide-neutral-100">
                   {orders.map((o) => (
                     <div key={o.id} className="flex items-center gap-4 px-4 py-3">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-ink">
+                        <p className="truncate text-body font-medium text-ink">
                           {o.customerName ?? "WhatsApp customer"}
                         </p>
-                        <p className="truncate text-xs text-ink-muted">
+                        <p className="truncate text-caption text-ink-muted">
                           {o.business.name} · {timeAgo(o.createdAt)}
                         </p>
                       </div>
-                      <span className="text-sm font-semibold text-ink">
+                      <span className="text-body font-semibold text-ink">
                         {formatNaira(o.total)}
                       </span>
                       <Badge
@@ -500,8 +500,8 @@ export default function AdminPage() {
                             : o.status === "CANCELLED"
                               ? "danger"
                               : o.status === "CONFIRMED"
-                                ? "gold"
-                                : "navy"
+                                ? "brand"
+                                : "neutral"
                         }
                       >
                         {o.status}
@@ -515,18 +515,18 @@ export default function AdminPage() {
         )}
 
         {/* Security note */}
-        <div className="mt-6 flex items-start gap-3 rounded-2xl border border-navy-100 bg-white p-5">
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-5">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
           <div>
-            <p className="text-sm font-medium text-ink">Admin access is server-side</p>
-            <p className="mt-0.5 text-[13px] leading-relaxed text-ink-muted">
+            <p className="text-body font-medium text-ink">Admin access is server-side</p>
+            <p className="mt-0.5 text-caption leading-relaxed text-ink-muted">
               Every admin API verifies your role on the server. Users can only
               modify their own businesses, products and orders — client-supplied
               IDs are always re-checked against the session.
             </p>
           </div>
         </div>
-        <p className="mt-4 flex items-center gap-1.5 text-xs text-ink-muted">
+        <p className="mt-4 flex items-center gap-1.5 text-caption text-ink-muted">
           <ShieldAlert className="h-3.5 w-3.5" />
           Suspending a business immediately hides its storefront from customers.
         </p>
